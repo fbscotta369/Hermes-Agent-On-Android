@@ -5,13 +5,13 @@
 
 set -e
 
-echo -e "${CYN}==========================================================${RST}"
+echo -e "${CYN}=====================================================${RST}"
 echo -e "${GRN}                   THEVOIDKERNEL"
-echo -e "${CYN}==========================================================${RST}"
+echo -e "${CYN}=====================================================${RST}"
 
-echo -e "${CYN}==========================================================${RST}"
+echo -e "${CYN}=====================================================${RST}"
 echo -e "${GRN}        🚀 Installing Hermes Agent on Termux..."
-echo -e "${CYN}==========================================================${RST}"
+echo -e "${CYN}=====================================================${RST}"
 
 echo "📦 Repository: https://github.com/AbuZar-Ansarii/Hermes-Agent-On-Android"
 
@@ -45,5 +45,12 @@ python -m pip install -e '.[termux]' -c constraints-termux.txt
 ln -sf "$PWD/venv/bin/hermes" "$PREFIX/bin/hermes"
 
 echo "✅ Hermes Agent installed successfully!"
-echo "🔧 Run 'hermes' to start using it"
+echo "🔥 Run 'hermes' or 'hermes setup' to start using it"
 echo "📖 Type 'hermes --help' for more options"
+echo ""
+echo "💡 Need help? Visit: https://github.com/AbuZar-Ansarii/Hermes-Agent-On-Android"
+echo ""
+
+echo "🌐 Run 'hermes gateway' to run deply it"
+
+
