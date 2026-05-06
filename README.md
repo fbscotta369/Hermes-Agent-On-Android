@@ -91,6 +91,7 @@ chmod +x hermes_install.sh
 | **🔄 Always available** | Works offline (with local models) |
 
 <div align="center">
+    
 ## **⭐ If this helped you, give it a star! ⭐**
 </div>
 
