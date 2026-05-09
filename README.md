@@ -48,7 +48,7 @@ graph LR
 curl -fsSL https://raw.githubusercontent.com/AbuZar-Ansarii/Hermes-Agent-On-Android/main/hermes_install.sh | bash
 ```
 
-## 🛠️ Manual Installation
+## 🛠️ Manual Installation (Recommended)
 Prefer to do it yourself? Here's the step-by-step:
 ```
 # 1. Clone this repository
