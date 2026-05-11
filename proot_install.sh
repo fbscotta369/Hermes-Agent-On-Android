@@ -1,7 +1,4 @@
-#!/bin/bash
-
-# Hermes Agent - One-line installer for Termux (Android)
-# Usage: curl -fsSL https://your-raw-url/hermes_install.sh | bash
+#!/data/data/com.termux/files/usr/bin/bash
 
 set -e
 
@@ -12,64 +9,43 @@ YLW='\033[1;33m'
 CYN='\033[0;36m'
 RST='\033[0m'
 
+clear
+
 echo -e "${CYN}=====================================================${RST}"
 echo -e "${GRN}                   THEVOIDKERNEL"
 echo -e "${CYN}=====================================================${RST}"
 
 echo -e "${CYN}=====================================================${RST}"
-echo -e "${GRN}        🚀 Installing Hermes Agent on Termux..."
+echo -e "${GRN}         HERMES AGENT TERMUX INSTALLER"
 echo -e "${CYN}=====================================================${RST}"
 
-echo "📦 Repository: https://github.com/AbuZar-Ansarii/Hermes-Agent-On-Android"
+echo -e "${YLW}Updating packages...${RST}"
+#!/bin/bash
 
+# --- Termux Level Commands ---
 
-# Update packages
-pkg update && pkg upgrade -y
+pkg update && apt upgrade -y
 
-# Install dependencies
-pkg install -y git python clang rust make pkg-config libffi openssl nodejs ripgrep ffmpeg python-psutil 
+echo -e "${CYN} Installing Dependencies......${RST}"
 
-# Clone repository
-git clone --recurse-submodules https://github.com/NousResearch/hermes-agent.git
+pkg install python python-pip git curl build-essential-glibc nodejs-lts -y
 
-# Navigate to directory
+git clone https://github.com/NousResearch/hermes-agent.git
 cd hermes-agent
 
-# Setup Python virtual environment
-python -m venv venv
-source venv/bin/activate
+echo -e "${CYN} Cloning Hermes Repo......${RST}"
+pip install --upgrade pip
 
-# Set Android API level
-export ANDROID_API_LEVEL="$(getprop ro.build.version.sdk)"
+echo -e "${CYN} Installing Hermes Agent Dependencies......${RST}"
+pip install -e .
+    
+echo -e "${CYN}===================================================${RST}"
+echo -e "${GRN}      ✅ Hermes Agent installed successfully!"
+echo -e "${CYN}===================================================${RST}"
 
-echo -e "${YLW}Upgrading pip tools...${RST}"
-
-python -m pip install --upgrade pip setuptools wheel
-
-python -m pip install -e '.[termux]' \
--c constraints-termux.txt \
---no-deps
-# Install Hermes with Termux support
-python -m pip install \
-cython \
-numpy \
-wheel
-
-
-
-# Create global symlink
-ln -sf "$PWD/venv/bin/hermes" "$PREFIX/bin/hermes"
-
-echo ""
-echo -e "${GRN}=====================================================${RST}"
-echo -e "${GRN}     ✅ Hermes Agent Installed Successfully${RST}"
-echo -e "${GRN}=====================================================${RST}"
-
-echo ""
-echo "🔥 Run 'hermes' or 'hermes setup' to start using it"
 echo "📖 Type 'hermes --help' for more options"
 echo ""
 echo "💡 Need help? Visit: https://github.com/AbuZar-Ansarii/Hermes-Agent-On-Android"
 echo ""
-
-echo "🌐 Run 'hermes gateway' to run deply it"
+echo -e "${CYN} 🌐 Run 'hermes gateway' to run deply it${RST}"
+echo -e "${CYN} 🔥 Run 'hermes' or 'hermes setup' to start using it ${RST}"
