@@ -30,15 +30,26 @@ export DEBIAN_FRONTEND=noninteractive
 export TZ=UTC
 
 echo -e "${YLW}📦 Updating Termux packages...${RST}"
-if ! pkg update -y >/dev/null 2>&1; then
-    echo -e "${YLW}⚠️  pkg update had warnings, continuing...${RST}"
+# Prevent Android from killing Termux while installing
+termux-wake-lock 2>/dev/null || true
+
+# Feed 'y' from yes in case apt asks for anything despite -y
+# and show output so the user can see mirror / network issues
+if ! yes | pkg update -y 2>&1; then
+    echo -e "${YLW}⚠️  pkg update returned an error.${RST}"
+    echo -e "${YLW}   Trying apt --fix-broken install...${RST}"
+    apt --fix-broken install -y 2>&1 || true
+    echo -e "${YLW}   Retrying pkg update...${RST}"
+    yes | pkg update -y 2>&1 || true
 fi
-if ! pkg upgrade -y >/dev/null 2>&1; then
-    echo -e "${YLW}⚠️  pkg upgrade had warnings, continuing...${RST}"
+
+echo -e "${YLW}📦 Upgrading Termux packages...${RST}"
+if ! yes | pkg upgrade -y 2>&1; then
+    echo -e "${YLW}⚠️  pkg upgrade returned an error, continuing anyway...${RST}"
 fi
 
 echo -e "${YLW}🔧 Ensuring proot-distro is installed...${RST}"
-if ! pkg install proot-distro -y >/dev/null 2>&1; then
+if ! pkg install proot-distro -y 2>&1; then
     echo -e "${RED}❌ Failed to install proot-distro${RST}"
     exit 1
 fi
