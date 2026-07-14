@@ -115,14 +115,17 @@ Hermes-Agent-On-Android/
 ├── nous_agent.sh          # 🏆 One-command installer (recommended)
 ├── install.sh             # Direct Termux install (alternative)
 ├── scripts/
-│   ├── hermes             # Launcher template — chains Termux → Ubuntu → venv
+│   ├── hermes             # Launcher — chains Termux → Ubuntu → venv
 │   ├── hermes-setup       # One-shot setup command
 │   ├── hermes-update      # Update to latest version
 │   └── uninstall.sh       # Clean removal script
-├── agent_install.sh       # ⚠️ Legacy (predecessor to nous_agent.sh)
+├── assets/
+│   └── aiia-labs-logo.png # AIIA-Labs branding
+├── agent_install.sh       # ⚠️ Legacy
 ├── hermes_install.sh      # ⚠️ Legacy
 ├── proot_install.sh       # ⚠️ Legacy
-├── nous_hermes_agent_install.sh  # ⚠️ Legacy (superseded)
+├── nous_hermes_agent_install.sh  # ⚠️ Legacy
+├── .gitignore
 └── README.md
 ```
 

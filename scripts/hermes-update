@@ -14,13 +14,14 @@ if [ "${1:-}" = "--edge" ]; then
     echo -e "${YLW}  → Tracking main branch (edge)${RST}"
     exec proot-distro login ubuntu -- bash -c '
 set -euo pipefail
+export PATH="$HOME/.local/bin:$PATH"
 cd "$HOME/hermes-agent"
 echo "  → Fetching latest code..."
 git fetch origin
 git reset --hard origin/main
 source venv/bin/activate
 echo "  → Reinstalling..."
-pip install -e . >/dev/null 2>&1
+uv pip install -e . >/dev/null 2>&1
 echo -e "\n✅ Hermes Agent updated to latest main!"
 echo "   Run: hermes"
 '
@@ -28,6 +29,7 @@ else
     echo -e "${YLW}  → Updating to latest stable tag...${RST}"
     exec proot-distro login ubuntu -- bash -c '
 set -euo pipefail
+export PATH="$HOME/.local/bin:$PATH"
 cd "$HOME/hermes-agent"
 echo "  → Fetching tags..."
 git fetch --tags origin
@@ -35,7 +37,7 @@ LATEST_TAG=$(git tag --sort=-version:refname | head -1)
 echo "  → Latest tag: $LATEST_TAG"
 git checkout "$LATEST_TAG"
 source venv/bin/activate
-pip install -e . >/dev/null 2>&1
+uv pip install -e . >/dev/null 2>&1
 echo -e "\n✅ Hermes Agent updated to $LATEST_TAG!"
 echo "   Run: hermes"
 '
