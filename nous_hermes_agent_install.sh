@@ -4,7 +4,7 @@
 # Fixed and modernized version of nous_agent.sh
 #
 # Usage in Termux:
-#   curl -fsSL https://raw.githubusercontent.com/AbuZar-Ansarii/Hermes-Agent-On-Android/main/nous_hermes_agent_install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/AIIA-Labs/Hermes-Agent-On-Android/main/nous_hermes_agent_install.sh | bash
 #
 
 set -euo pipefail
@@ -21,7 +21,7 @@ clear
 echo -e "${CYN}=====================================================${RST}"
 echo -e "${GRN}         ☤ HERMES AGENT TERMUX INSTALLER ☤"
 echo -e "${CYN}=====================================================${RST}"
-echo -e "${GRN}       Fixed & Modernized | AbuZar-Ansarii"
+echo -e "${GRN}       Fixed & Modernized | AIIA-Labs"
 echo -e "${CYN}=====================================================${RST}"
 echo ""
 
@@ -178,4 +178,4 @@ echo -e "${CYN}   proot-distro login ubuntu${RST}"
 echo -e "${CYN}   cd hermes-agent && source venv/bin/activate${RST}"
 echo -e "${CYN}   hermes${RST}"
 echo ""
-echo -e "${GRN}💡 Need help? Visit: https://github.com/AbuZar-Ansarii/Hermes-Agent-On-Android${RST}"
+echo -e "${GRN}💡 Need help? Visit: https://github.com/AIIA-Labs/Hermes-Agent-On-Android${RST}"
