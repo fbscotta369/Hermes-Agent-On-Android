@@ -1,0 +1,9 @@
+#!/data/data/com.termux/files/usr/bin/bash
+#
+# One-shot Hermes Agent first-time setup
+# Installed by nous_agent.sh to $PREFIX/bin/hermes-setup
+# Usage: hermes-setup
+#
+exec proot-distro login ubuntu -- bash -c '
+cd "$HOME/hermes-agent" && source venv/bin/activate && exec hermes setup "$@"
+' -- "$@"

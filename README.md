@@ -8,152 +8,204 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-9146ff.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Termux](https://img.shields.io/badge/Termux-Android-ff6b6b.svg?style=for-the-badge)](https://termux.com/)
-[![Version](https://img.shields.io/badge/version-v0.10.0-4ecdc4.svg?style=for-the-badge)](https://github.com/NousResearch/hermes-agent)
-[![Stars](https://img.shields.io/github/stars/AIIA-Labs/Hermes-Agent-On-Android?style=for-the-badge&color=ffd93d)](https://github.com/AIIA-Labs/Hermes-Agent-On-Android)
+[![Version](https://img.shields.io/badge/version-v0.18.2-4ecdc4.svg?style=for-the-badge)](https://github.com/NousResearch/hermes-agent)
 
 **Transform your Android device into a powerful, learning AI assistant**
 </div>
 
 ## ✨ What is Hermes Agent?
 
-> **Hermes Agent** is an open-source, self-evolving AI framework developed by [Nous Research](https://github.com/NousResearch/hermes-agent). It's like having **Jarvis in your pocket** - an AI that learns, adapts, and grows smarter with every interaction.
+> **Hermes Agent** is an open-source, self-evolving AI framework developed by [Nous Research](https://github.com/NousResearch/hermes-agent). It's like having **Jarvis in your pocket** — an AI that learns, adapts, and grows smarter with every interaction.
 
 <div align="center">
 
 | 🧠 Self-Learning | 🔄 Cross-Platform | 💾 Persistent Memory | 🛠️ 70+ Tools |
 |:----------------:|:------------------:|:-------------------:|:-------------:|
-| Gets smarter over time | Works on 16+ apps | Remembers your preferences | Execute complex tasks |
+| Gets smarter over time | Works across 16+ apps | Remembers your preferences | Execute complex tasks |
 
 </div>
 
 ---
 
-## ⏱️ Installation takes ~5-10 minutes - Grab a coffee! ☕
-</div>
+## ⏱️ Installation takes ~5-10 minutes — Grab a coffee! ☕
 
-## Installation Preview:
-```mermaid
-graph LR
-    A[📱 Open Termux] --> B[📋 Copy Command]
-    B --> C[⚡ Paste & Run]
-    C --> D[🔄 Auto-Install]
-    D --> E[✅ Ready to Use!]
-```
+---
 
-# 🚀 **One-Line Installation**
+# 🚀 **One-Command Installation**
 
-### **Copy and paste this command in Termux:**
+### **Copy and paste this in Termux:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/AIIA-Labs/Hermes-Agent-On-Android/main/nous_agent.sh | bash
+curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/nous_agent.sh | bash
 ```
 
-## 🛠️ Manual Installation (Recommended)
-Prefer to do it yourself? Here's the step-by-step:
+**That's it.** The installer:
+1. ✅ Checks your Android version, storage, and internet connectivity
+2. ✅ Installs proot-distro + Ubuntu (if not already present)
+3. ✅ Clones the latest stable Hermes Agent
+4. ✅ Sets up the Python virtual environment
+5. ✅ Installs `hermes`, `hermes-setup`, `hermes-update` commands for Termux
+
+### 🔧 After install, just type:
+
+```bash
+hermes setup      # First-time configuration (once)
+hermes            # Start the agent
 ```
+
+**No more 4-step ritual.** The `hermes` command automatically enters Ubuntu, activates the virtual environment, and passes your arguments through.
+
+---
+
+## 🎛️ Installation Options
+
+### Stable vs. Edge
+
+```bash
+# Default — installs the pinned stable release (v2026.7.7.2)
+curl -fsSL .../nous_agent.sh | bash
+
+# Edge — tracks the main branch (latest features)
+curl -fsSL .../nous_agent.sh | bash -s -- --edge
+
+# Specific tag
+curl -fsSL .../nous_agent.sh | bash -s -- --tag v2026.7.7.2
+```
+
+### Direct Termux Install (Alternative)
+
+If you prefer running Hermes directly in Termux without proot-distro:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/install.sh | bash
+```
+
+---
+
+## 📦 Commands Available After Installation
+
+| Command | Description |
+|---------|-------------|
+| `hermes` | Start the agent (auto-enters Ubuntu + venv) |
+| `hermes setup` | First-time configuration wizard |
+| `hermes gateway` | Start the gateway server |
+| `hermes-update` | Update to the latest version |
+| `hermes-update --edge` | Update to latest main branch |
+| `hermes-setup` | Alias for `hermes setup` |
+
+---
+
+## 🛠️ Manual Installation (if you prefer step-by-step)
+
+```bash
 pkg install git
-```
-```
-# 1. Clone this repository
-git clone https://github.com/AIIA-Labs/Hermes-Agent-On-Android.git
+git clone https://github.com/fbscotta369/Hermes-Agent-On-Android.git
 cd Hermes-Agent-On-Android
-
-# 2. Make the script executable
-chmod +x agent_install.sh
-
-# 3. Run the installer
-./agent_install.sh
+chmod +x nous_agent.sh
+./nous_agent.sh
 ```
 
-## 🤖 Start Agent
-Run these commands one by one after installling
+---
+
+## 📁 Project Structure
+
 ```
-cd
-proot-distro login ubuntu
+Hermes-Agent-On-Android/
+├── nous_agent.sh          # 🏆 One-command installer (recommended)
+├── install.sh             # Direct Termux install (alternative)
+├── scripts/
+│   ├── hermes             # Launcher template — chains Termux → Ubuntu → venv
+│   ├── hermes-setup       # One-shot setup command
+│   ├── hermes-update      # Update to latest version
+│   └── uninstall.sh       # Clean removal script
+├── agent_install.sh       # ⚠️ Legacy (predecessor to nous_agent.sh)
+├── hermes_install.sh      # ⚠️ Legacy
+├── proot_install.sh       # ⚠️ Legacy
+├── nous_hermes_agent_install.sh  # ⚠️ Legacy (superseded)
+└── README.md
 ```
-```
-cd hermes-agent
-source venv/bin/activate
-```
-Run for setting it up
-```
-hermes setup
-```
-Run for using it
-```
-hermes
-```
-## Start gateway
-```
-hermes gateway
-```
+
+---
 
 ## ⚙️ System Requirements
 
 | Requirement | Minimum | Recommended |
 |:------------|:-------:|-------------:|
-| **Android Version** | 11  |  13,14 or 15 |
-| **Storage Space** | 3GB | 5GB+ |
-| **RAM** | 2GB | 4GB+ |
+| **Android Version** | 11 | 13, 14, or 15 |
+| **Storage Space** | 3 GB | 5 GB+ |
+| **RAM** | 2 GB | 4 GB+ |
 | **Internet** | Required | Fast connection |
 | **Termux** | Latest | Latest from F-Droid |
 
+---
 
 ## 🌍 Why Run Hermes on Android?
 
-| Benefit |  Description |
-|:------------|:-------------:|
-| **📱 Portable AI** | Your assistant goes everywhere  |
+| Benefit | Description |
+|:--------|:------------|
+| **📱 Portable AI** | Your assistant goes everywhere |
 | **🔒 Privacy** | Runs locally on your device |
 | **💰 Cost-effective** | No server hosting fees |
 | **⚡ Low latency** | Direct execution |
 | **🔄 Always available** | Works offline (with local models) |
 
-
+---
 
 ## 🎛️ AI Model Freedom
+
 Compatible with 200+ AI models including:
 
-• OpenAI (GPT-4, GPT-3.5)
-
-• Anthropic (Claude)
-
-• Google (Gemini)
-
-• DeepSeek
-
-• Alibaba (Qwen)
-
-• Zhipu (GLM)
-
-• Local models via Ollama
+- OpenAI (GPT-4, GPT-3.5)
+- Anthropic (Claude)
+- Google (Gemini)
+- DeepSeek
+- Alibaba (Qwen)
+- Zhipu (GLM)
+- Local models via Ollama
 
 ## 🦙 Running Local Models with [Ollama](https://ollama.com)
 
-### 📋 Installation
-
-#### Install Ollama on Termux:
-```
+### Install Ollama on Termux:
+```bash
 pkg install ollama
 ollama serve
 ```
-#### Pull & Run Models
-```
+
+### Pull & Run Models
+```bash
 ollama run gemma4:31b-cloud
 ```
 
+---
+
+## 🔄 Updating
+
+```bash
+# Update to latest stable tag
+hermes-update
+
+# Update to latest main branch (bleeding edge)
+hermes-update --edge
+```
+
+## 🗑️ Uninstalling
+
+```bash
+# From inside the repo:
+bash scripts/uninstall.sh
+```
+
+---
+
 ## 🙏 Acknowledgments
-• Nous Research - For creating the amazing Hermes Agent
 
-• Termux Team - For making Android development possible
-
-• Open Source Community - For the countless tools and libraries
-
-• You - For using and supporting this project! ❤️
-
+- **Nous Research** — For creating the amazing Hermes Agent
+- **AbuZar-Ansarii** — Original Android packaging work
+- **Termux Team** — For making Android development possible
+- **Open Source Community** — For the countless tools and libraries
+- **You** — For using and supporting this project! ❤️
 
 <div align="center">
-    
+
 ## **⭐ If this helped you, give it a star! ⭐**
 </div>
-

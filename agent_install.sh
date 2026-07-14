@@ -1,4 +1,9 @@
 #!/data/data/com.termux/files/usr/bin/bash
+#
+# ⚠️  LEGACY — Use nous_agent.sh instead (the one-liner).
+#    This script is kept for reference only.
+#    See: https://github.com/fbscotta369/Hermes-Agent-On-Android
+#
 
 set -e
 
@@ -10,6 +15,11 @@ CYN='\033[0;36m'
 RST='\033[0m'
 
 clear
+
+echo -e "${YLW}╔══════════════════════════════════════════════════╗${RST}"
+echo -e "${YLW}║     ⚠️  LEGACY INSTALLER — USE nous_agent.sh     ║${RST}"
+echo -e "${YLW}╚══════════════════════════════════════════════════╝${RST}"
+echo ""
 
 echo -e "${CYN}=====================================================${RST}"
 echo -e "${GRN}                   AIIA-Labs"

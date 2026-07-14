@@ -1,10 +1,14 @@
 #!/data/data/com.termux/files/usr/bin/bash
 #
+# ⚠️  LEGACY — Use nous_agent.sh instead (the primary one-liner).
+#    nous_agent.sh now incorporates all fixes from this script.
+#    This script is kept for reference only.
+#
 # Nous Hermes Agent Installer for Android (Termux)
-# Fixed and modernized version of nous_agent.sh
+# Fixed and modernized version of nous_agent.sh (predecessor)
 #
 # Usage in Termux:
-#   curl -fsSL https://raw.githubusercontent.com/AIIA-Labs/Hermes-Agent-On-Android/main/nous_hermes_agent_install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/nous_agent.sh | bash
 #
 
 set -euo pipefail

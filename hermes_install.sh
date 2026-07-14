@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# ⚠️  LEGACY — Use nous_agent.sh instead (the one-liner).
+#    This script is kept for reference only.
+#
 
 # Hermes Agent - One-line installer for Termux (Android)
 # Usage: curl -fsSL https://your-raw-url/hermes_install.sh | bash

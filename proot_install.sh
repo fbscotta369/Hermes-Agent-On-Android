@@ -1,4 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
+#
+# ⚠️  LEGACY — Use nous_agent.sh instead (the one-liner).
+#    This script is kept for reference only.
+#
 
 set -e
 

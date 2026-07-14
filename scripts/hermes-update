@@ -1,0 +1,42 @@
+#!/data/data/com.termux/files/usr/bin/bash
+#
+# Hermes Agent updater
+# Installed by nous_agent.sh to $PREFIX/bin/hermes-update
+# Usage: hermes-update [--edge]
+#
+set -euo pipefail
+
+RED='\033[0;31m'; GRN='\033[0;32m'; YLW='\033[1;33m'; CYN='\033[0;36m'; RST='\033[0m'
+
+echo -e "${CYN}━━━ Updating Hermes Agent ━━━${RST}"
+
+if [ "${1:-}" = "--edge" ]; then
+    echo -e "${YLW}  → Tracking main branch (edge)${RST}"
+    exec proot-distro login ubuntu -- bash -c '
+set -euo pipefail
+cd "$HOME/hermes-agent"
+echo "  → Fetching latest code..."
+git fetch origin
+git reset --hard origin/main
+source venv/bin/activate
+echo "  → Reinstalling..."
+pip install -e . >/dev/null 2>&1
+echo -e "\n✅ Hermes Agent updated to latest main!"
+echo "   Run: hermes"
+'
+else
+    echo -e "${YLW}  → Updating to latest stable tag...${RST}"
+    exec proot-distro login ubuntu -- bash -c '
+set -euo pipefail
+cd "$HOME/hermes-agent"
+echo "  → Fetching tags..."
+git fetch --tags origin
+LATEST_TAG=$(git tag --sort=-version:refname | head -1)
+echo "  → Latest tag: $LATEST_TAG"
+git checkout "$LATEST_TAG"
+source venv/bin/activate
+pip install -e . >/dev/null 2>&1
+echo -e "\n✅ Hermes Agent updated to $LATEST_TAG!"
+echo "   Run: hermes"
+'
+fi
