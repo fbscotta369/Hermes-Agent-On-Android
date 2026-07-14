@@ -129,16 +129,34 @@ if ! pkg install proot-distro -y 2>&1; then
 fi
 ok "proot-distro ready"
 
-# [Improvement #1] Fixed Ubuntu detection (original grep -q | grep pipe was broken)
+# [Improvement #1] Ubuntu detection — robust against different output formats
 info "Checking Ubuntu installation..."
-if proot-distro list 2>/dev/null | grep -q "ubuntu.*Installed: yes"; then
+
+# Multiple detection strategies to handle varying proot-distro output formats
+UBUNTU_INSTALLED=false
+if proot-distro list 2>/dev/null | grep -qi "ubuntu"; then
+    if proot-distro list 2>/dev/null | grep -qi "ubuntu.*Installed: yes\|ubuntu.*installed" 2>/dev/null; then
+        UBUNTU_INSTALLED=true
+    elif proot-distro list 2>/dev/null | grep -qi "ubuntu" | grep -qi "yes" 2>/dev/null; then
+        UBUNTU_INSTALLED=true
+    elif [ -d "$PREFIX/var/lib/proot-distro/installed-distros/ubuntu" ]; then
+        UBUNTU_INSTALLED=true
+    fi
+fi
+
+if [ "$UBUNTU_INSTALLED" = true ]; then
     ok "Ubuntu is already installed"
 else
     info "Installing Ubuntu (this may take a few minutes)..."
-    if ! proot-distro install ubuntu; then
-        fail "Failed to install Ubuntu"
+    # Try install; handle "already exists" error gracefully
+    if ! OUTPUT=$(proot-distro install ubuntu 2>&1); then
+        if echo "$OUTPUT" | grep -qi "already exists"; then
+            warn "Ubuntu container already exists (detection hiccup). Continuing..."
+        else
+            fail "Failed to install Ubuntu: $OUTPUT"
+        fi
     fi
-    ok "Ubuntu installed"
+    ok "Ubuntu ready"
 fi
 
 # ──────────────────────────────────────────────
@@ -352,7 +370,11 @@ echo -e "  ${CYN}  hermes gateway${RST}   Start the gateway"
 echo -e "  ${CYN}  hermes-update${RST}    Update to the latest version"
 echo ""
 
-echo -e "  ${YLW}Pro-tip:${RST} Just close and reopen Termux, then type ${CYN}hermes${RST}"
+# Refresh bash command cache so 'hermes' works immediately
+hash -r 2>/dev/null || true
+
+echo -e "  ${YLW}Tip:${RST} Type ${CYN}hermes${RST} right now — it's ready!"
+echo -e "  ${YLW}Tip:${RST} If you restart Termux later, just type ${CYN}hermes${RST} — no extra steps needed."
 echo ""
 
 echo -e "  ${GRN}💡 Need help?${RST} https://github.com/fbscotta369/Hermes-Agent-On-Android"
