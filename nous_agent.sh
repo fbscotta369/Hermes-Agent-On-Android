@@ -185,11 +185,34 @@ apt-get upgrade -y -o Dpkg::Options::="--force-confold" >/dev/null 2>&1 || true
 
 echo "  → Installing system dependencies..."
 apt-get install -y -o Dpkg::Options::="--force-confold" \
-    python3 python3-pip python3-venv python3-dev python-is-python3 \
     git curl wget build-essential \
     nodejs npm \
     libffi-dev libssl-dev pkg-config \
     ca-certificates >/dev/null 2>&1
+
+# Install a Python version compatible with Hermes Agent (requires >=3.11, <3.14)
+echo "  → Installing compatible Python version..."
+PYTHON=""
+for pyver in "3.13" "3.12" "3.11"; do
+    if apt-get install -y -o Dpkg::Options::="--force-confold" \
+        "python\${pyver}" "python\${pyver}-venv" "python\${pyver}-dev" >/dev/null 2>&1; then
+        PYTHON="python\${pyver}"
+        echo "  → Using Python \${pyver}"
+        break
+    fi
+done
+
+if [ -z "\$PYTHON" ]; then
+    # Fallback: install default python3 (may fail later if version too new)
+    echo "  ⚠️  Could not install Python 3.11-3.13, trying default python3..."
+    apt-get install -y -o Dpkg::Options::="--force-confold" \
+        python3 python3-pip python3-venv python3-dev >/dev/null 2>&1
+    PYTHON="python3"
+fi
+
+# Verify Python version is compatible
+PYTHON_VER=\$(\$PYTHON --version 2>&1 | grep -oP '\\d+\\.\\d+')
+echo "  → Python version: \$PYTHON_VER"
 
 REPO_DIR="\$HOME/hermes-agent"
 
@@ -228,16 +251,16 @@ cd "\$REPO_DIR"
 # --- Python virtual environment ---
 echo "  → Setting up Python virtual environment..."
 rm -rf venv
-python3 -m venv venv
+\$PYTHON -m venv venv
 source venv/bin/activate
 
 echo "  → Upgrading pip..."
-python3 -m pip install --upgrade pip setuptools wheel >/dev/null 2>&1
+\$PYTHON -m pip install --upgrade pip setuptools wheel >/dev/null 2>&1
 
 echo "  → Installing Hermes Agent (this can take 5-10 minutes)..."
-if ! python3 -m pip install -e ".[all]" >/dev/null 2>&1; then
+if ! \$PYTHON -m pip install -e ".[all]" >/dev/null 2>&1; then
     echo "  ⚠️  Full extras install failed, trying base install..."
-    python3 -m pip install -e "."
+    \$PYTHON -m pip install -e "."
 fi
 
 echo ""
