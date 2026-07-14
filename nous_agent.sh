@@ -190,29 +190,13 @@ apt-get install -y -o Dpkg::Options::="--force-confold" \
     libffi-dev libssl-dev pkg-config \
     ca-certificates >/dev/null 2>&1
 
-# Install a Python version compatible with Hermes Agent (requires >=3.11, <3.14)
-echo "  → Installing compatible Python version..."
-PYTHON=""
-for pyver in "3.13" "3.12" "3.11"; do
-    if apt-get install -y -o Dpkg::Options::="--force-confold" \
-        "python\${pyver}" "python\${pyver}-venv" "python\${pyver}-dev" >/dev/null 2>&1; then
-        PYTHON="python\${pyver}"
-        echo "  → Using Python \${pyver}"
-        break
-    fi
-done
-
-if [ -z "\$PYTHON" ]; then
-    # Fallback: install default python3 (may fail later if version too new)
-    echo "  ⚠️  Could not install Python 3.11-3.13, trying default python3..."
-    apt-get install -y -o Dpkg::Options::="--force-confold" \
-        python3 python3-pip python3-venv python3-dev >/dev/null 2>&1
-    PYTHON="python3"
-fi
-
-# Verify Python version is compatible
-PYTHON_VER=\$(\$PYTHON --version 2>&1 | grep -oP '\\d+\\.\\d+')
-echo "  → Python version: \$PYTHON_VER"
+# Hermes Agent requires Python >=3.11, <3.14
+# Ubuntu 25.04+ ships Python 3.14 which is incompatible
+# Solution: use uv which automatically manages Python versions
+echo "  → Installing uv (Python package manager with auto version management)..."
+curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="\$HOME/.local/bin:\$PATH"
+echo "  → uv installed: \$(uv --version 2>/dev/null || echo 'ready')"
 
 REPO_DIR="\$HOME/hermes-agent"
 
@@ -248,19 +232,21 @@ fi
 
 cd "\$REPO_DIR"
 
-# --- Python virtual environment ---
-echo "  → Setting up Python virtual environment..."
+# --- Python virtual environment (uv manages the Python version automatically) ---
+echo "  → Setting up Python virtual environment with compatible Python..."
 rm -rf venv
-\$PYTHON -m venv venv
+uv venv --python ">=3.11,<3.14" venv
 source venv/bin/activate
 
+echo "  → Python version: \$(python --version)"
+
 echo "  → Upgrading pip..."
-\$PYTHON -m pip install --upgrade pip setuptools wheel >/dev/null 2>&1
+uv pip install --upgrade pip setuptools wheel
 
 echo "  → Installing Hermes Agent (this can take 5-10 minutes)..."
-if ! \$PYTHON -m pip install -e ".[all]" >/dev/null 2>&1; then
+if ! uv pip install -e ".[all]" >/dev/null 2>&1; then
     echo "  ⚠️  Full extras install failed, trying base install..."
-    \$PYTHON -m pip install -e "."
+    uv pip install -e "."
 fi
 
 echo ""
