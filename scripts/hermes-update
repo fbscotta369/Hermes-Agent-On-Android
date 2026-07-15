@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 #
-# Hermes Agent updater
+# Hermes Agent updater — updates both the Python package AND Termux launchers
 # Installed by nous_agent.sh to $PREFIX/bin/hermes-update
 # Usage: hermes-update [--edge]
 #
@@ -8,10 +8,27 @@ set -euo pipefail
 
 RED='\033[0;31m'; GRN='\033[0;32m'; YLW='\033[1;33m'; CYN='\033[0;36m'; RST='\033[0m'
 
+REPO="fbscotta369/Hermes-Agent-On-Android"
+RAW="https://raw.githubusercontent.com/${REPO}/main/scripts"
+
 echo -e "${CYN}━━━ Updating Hermes Agent ━━━${RST}"
 
+# ── Step 1: Refresh Termux launchers from GitHub ──
+echo -e "${YLW}  → Refreshing Termux launchers...${RST}"
+
+LAUNCHERS="hermes hermes-setup hermes-gateway hermes-doctor hermes-update"
+for cmd in $LAUNCHERS; do
+    if curl -sf "${RAW}/${cmd}" -o "$PREFIX/bin/${cmd}" 2>/dev/null; then
+        chmod +x "$PREFIX/bin/${cmd}"
+        echo -e "  ${GRN}✓${RST} ${cmd}"
+    else
+        echo -e "  ${YLW}⚠${RST} ${cmd} — download failed, keeping current version"
+    fi
+done
+
+# ── Step 2: Update Hermes Agent inside Ubuntu ──
 if [ "${1:-}" = "--edge" ]; then
-    echo -e "${YLW}  → Tracking main branch (edge)${RST}"
+    echo -e "${YLW}  → Updating Hermes Agent (edge — main branch)...${RST}"
     exec proot-distro login ubuntu -- bash -c '
 set -euo pipefail
 export PATH="$HOME/.local/bin:$PATH"
@@ -26,7 +43,7 @@ echo -e "\n✅ Hermes Agent updated to latest main!"
 echo "   Run: hermes"
 '
 else
-    echo -e "${YLW}  → Updating to latest stable tag...${RST}"
+    echo -e "${YLW}  → Updating Hermes Agent (stable — latest tag)...${RST}"
     exec proot-distro login ubuntu -- bash -c '
 set -euo pipefail
 export PATH="$HOME/.local/bin:$PATH"
@@ -37,6 +54,7 @@ LATEST_TAG=$(git tag --sort=-version:refname | head -1)
 echo "  → Latest tag: $LATEST_TAG"
 git checkout "$LATEST_TAG"
 source venv/bin/activate
+echo "  → Reinstalling..."
 uv pip install -e . >/dev/null 2>&1
 echo -e "\n✅ Hermes Agent updated to $LATEST_TAG!"
 echo "   Run: hermes"

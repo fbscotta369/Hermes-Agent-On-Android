@@ -188,12 +188,24 @@ ollama run gemma4:31b-cloud
 ## 🔄 Updating
 
 ```bash
-# Update to latest stable tag
+# Update everything (launchers + Hermes Agent package)
 hermes-update
 
 # Update to latest main branch (bleeding edge)
 hermes-update --edge
 ```
+
+> 💡 **`hermes-update` now refreshes everything** — it pulls the latest launcher scripts from GitHub AND updates the Python package inside Ubuntu. Run it on all your devices to get the latest features (Telegram notifications, hermes-doctor, etc.).
+
+### Updating from an older version
+
+If you installed before Telegram notifications / hermes-doctor were added, just run:
+
+```bash
+hermes-update
+```
+
+This will download the new launchers and update the Python package in one step. No need to re-run the full installer.
 
 ## 🗑️ Uninstalling
 

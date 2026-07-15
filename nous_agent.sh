@@ -470,37 +470,49 @@ chmod +x "$PREFIX/bin/hermes-doctor"
 ok "Created $PREFIX/bin/hermes-doctor"
 
 # ──────────────────────────────────────────────
-# [Improvement #6] Install hermes-update
+# [Improvement #6] Install hermes-update (refreshes launchers + Python package)
 # ──────────────────────────────────────────────
 cat > "$PREFIX/bin/hermes-update" << 'HERMES_UPDATE'
 #!/data/data/com.termux/files/usr/bin/bash
 #
-# Hermes Agent updater
+# Hermes Agent updater — updates both Termux launchers AND Python package
 # Usage: hermes-update [--edge]
 #
 set -euo pipefail
 
 RED='\033[0;31m'; GRN='\033[0;32m'; YLW='\033[1;33m'; CYN='\033[0;36m'; RST='\033[0m'
 
+REPO="fbscotta369/Hermes-Agent-On-Android"
+RAW="https://raw.githubusercontent.com/${REPO}/main/scripts"
+
 echo -e "${CYN}━━━ Updating Hermes Agent ━━━${RST}"
 
+# Refresh Termux launchers from GitHub
+echo -e "${YLW}  → Refreshing Termux launchers...${RST}"
+for cmd in hermes hermes-setup hermes-gateway hermes-doctor hermes-update; do
+    if curl -sf "${RAW}/${cmd}" -o "$PREFIX/bin/${cmd}" 2>/dev/null; then
+        chmod +x "$PREFIX/bin/${cmd}"
+        echo -e "  ${GRN}✓${RST} ${cmd}"
+    else
+        echo -e "  ${YLW}⚠${RST} ${cmd} — download failed, keeping current"
+    fi
+done
+
+# Update Hermes Agent inside Ubuntu
 if [ "${1:-}" = "--edge" ]; then
-    echo -e "${YLW}  → Tracking main branch (edge)${RST}"
+    echo -e "${YLW}  → Updating Hermes Agent (edge)...${RST}"
     exec proot-distro login ubuntu -- bash -c '
 set -euo pipefail
 export PATH="$HOME/.local/bin:$PATH"
 cd "$HOME/hermes-agent"
 echo "  → Fetching latest code..."
-git fetch origin
-git reset --hard origin/main
+git fetch origin && git reset --hard origin/main
 source venv/bin/activate
-echo "  → Reinstalling..."
 uv pip install -e . >/dev/null 2>&1
 echo -e "\n✅ Hermes Agent updated to latest main!"
-echo "   Run: hermes"
 '
 else
-    echo -e "${YLW}  → Updating to latest stable tag...${RST}"
+    echo -e "${YLW}  → Updating Hermes Agent (stable)...${RST}"
     exec proot-distro login ubuntu -- bash -c '
 set -euo pipefail
 export PATH="$HOME/.local/bin:$PATH"
@@ -513,7 +525,6 @@ git checkout "$LATEST_TAG"
 source venv/bin/activate
 uv pip install -e . >/dev/null 2>&1
 echo -e "\n✅ Hermes Agent updated to $LATEST_TAG!"
-echo "   Run: hermes"
 '
 fi
 HERMES_UPDATE
