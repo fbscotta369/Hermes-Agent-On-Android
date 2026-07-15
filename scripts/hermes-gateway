@@ -1,0 +1,41 @@
+#!/data/data/com.termux/files/usr/bin/bash
+#
+# Hermes Agent gateway launcher with Telegram notifications
+# Installed by nous_agent.sh to $PREFIX/bin/hermes-gateway
+#
+# Usage: hermes-gateway
+#
+# Requires environment variables (set in ~/.bashrc):
+#   HERMES_TELEGRAM_BOT_TOKEN   — Telegram bot token from @BotFather
+#   HERMES_TELEGRAM_CHAT_ID     — Your Telegram chat ID
+#
+# If env vars are not set, the gateway runs without notifications.
+#
+set -euo pipefail
+
+# ── Telegram notification helper ──
+send_telegram() {
+    [ -z "${HERMES_TELEGRAM_BOT_TOKEN:-}" ] || [ -z "${HERMES_TELEGRAM_CHAT_ID:-}" ] && return 0
+    curl -s -X POST "https://api.telegram.org/bot${HERMES_TELEGRAM_BOT_TOKEN}/sendMessage" \
+        -d chat_id="${HERMES_TELEGRAM_CHAT_ID}" \
+        -d text="$1" \
+        --max-time 10 >/dev/null 2>&1 || true
+}
+
+# ── Send offline notification on exit (Ctrl+C, kill, crash) ──
+OFFLINE_SENT=false
+send_offline() {
+    if [ "$OFFLINE_SENT" = "false" ]; then
+        OFFLINE_SENT=true
+        send_telegram "Hermes Agent Gateway offline :-("
+    fi
+}
+trap send_offline EXIT
+
+# ── Send online notification on start ──
+send_telegram "Hermes Agent Gateway online ;-)"
+
+# ── Start the gateway (no exec — trap needs the process to return) ──
+proot-distro login ubuntu -- bash -c '
+cd "$HOME/hermes-agent" && source venv/bin/activate && exec hermes gateway "$@"
+' -- "$@"

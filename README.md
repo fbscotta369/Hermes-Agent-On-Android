@@ -201,6 +201,51 @@ bash scripts/uninstall.sh
 
 ---
 
+## 📱 Telegram Notifications (Optional)
+
+Get notified on your phone when the Hermes Agent Gateway starts or stops.
+
+### 1. Create a Telegram Bot
+
+1. Open Telegram and message **[@BotFather](https://t.me/BotFather)**
+2. Send `/newbot` and follow the prompts
+3. Copy the **bot token** (looks like `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`)
+
+### 2. Get Your Chat ID
+
+1. Open your new bot in Telegram and send any message
+2. Visit `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates` in a browser
+3. Find `"chat":{"id":` — that number is your **chat ID**
+
+### 3. Set Environment Variables
+
+Add these to your Termux `~/.bashrc`:
+
+```bash
+export HERMES_TELEGRAM_BOT_TOKEN="your-bot-token-here"
+export HERMES_TELEGRAM_CHAT_ID="your-chat-id-here"
+```
+
+Then reload:
+
+```bash
+source ~/.bashrc
+```
+
+### 4. Start the Gateway
+
+```bash
+hermes-gateway
+```
+
+You'll receive:
+- **"Hermes Agent Gateway online ;-)"** — when the gateway starts
+- **"Hermes Agent Gateway offline :-("** — when it stops (Ctrl+C, kill, or crash)
+
+> 💡 If the env vars aren't set, the gateway still works — just without notifications.
+
+---
+
 ## 🙏 Acknowledgments
 
 - **Nous Research** — For creating the amazing Hermes Agent
