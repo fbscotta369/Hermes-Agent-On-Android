@@ -89,7 +89,8 @@ curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android
 |---------|-------------|
 | `hermes` | Start the agent (auto-enters Ubuntu + venv) |
 | `hermes setup` | First-time configuration wizard |
-| `hermes gateway` | Start the gateway server |
+| `hermes gateway` | Start the gateway (with Telegram notifications) |
+| `hermes-doctor` | Run diagnostics (API keys, Python, connectivity) |
 | `hermes-update` | Update to the latest version |
 | `hermes-update --edge` | Update to latest main branch |
 | `hermes-setup` | Alias for `hermes setup` |
@@ -117,6 +118,8 @@ Hermes-Agent-On-Android/
 ├── scripts/
 │   ├── hermes             # Launcher — chains Termux → Ubuntu → venv
 │   ├── hermes-setup       # One-shot setup command
+│   ├── hermes-gateway     # Gateway + Telegram notifications + error diagnostics
+│   ├── hermes-doctor      # Diagnostic tool (API keys, Python, connectivity)
 │   ├── hermes-update      # Update to latest version
 │   └── uninstall.sh       # Clean removal script
 ├── assets/
@@ -243,6 +246,55 @@ You'll receive:
 - **"Hermes Agent Gateway offline :-("** — when it stops (Ctrl+C, kill, or crash)
 
 > 💡 If the env vars aren't set, the gateway still works — just without notifications.
+
+---
+
+## 🔧 Troubleshooting
+
+### "Provider authentication failed" / "Check configured credentials"
+
+This means your API key is invalid, expired, or not set. Fix it:
+
+```bash
+# Run the diagnostic tool — it checks everything
+hermes-doctor
+```
+
+**Common causes:**
+
+| Error | Fix |
+|-------|-----|
+| No API key set | `export GOOGLE_API_KEY="your-key"` in `~/.bashrc` |
+| Key expired | Generate a new key at your provider's dashboard |
+| Key format wrong | Gemini keys start with `AIza`, OpenAI with `sk-`, Anthropic with `sk-ant-` |
+| Free tier quota exceeded | Upgrade plan or wait for quota reset |
+
+**For Google Gemini specifically:**
+1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
+2. Generate a **new API key**
+3. Ensure **Generative Language API** is enabled in your Google Cloud project
+4. Set it: `export GOOGLE_API_KEY="your-new-key"`
+5. Restart: `hermes gateway`
+
+### Gateway exits immediately
+
+```bash
+# Check what's wrong
+hermes-doctor
+
+# Debug with verbose logs
+proot-distro login ubuntu
+cd ~/hermes-agent && source venv/bin/activate
+hermes gateway --log-level debug
+```
+
+### "Python 3.14 not in <3.14" error
+
+Re-run the installer — it uses `uv` to install a compatible Python version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/nous_agent.sh | bash
+```
 
 ---
 

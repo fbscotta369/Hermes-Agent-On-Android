@@ -28,7 +28,7 @@ echo ""
 
 # ── Step 1: Remove Termux-level launchers ──
 echo -e "${GRN}  → Removing Termux launchers...${RST}"
-for cmd in hermes hermes-setup hermes-update hermes-gateway; do
+for cmd in hermes hermes-setup hermes-update hermes-gateway hermes-doctor; do
     if [ -f "$PREFIX/bin/$cmd" ]; then
         rm -f "$PREFIX/bin/$cmd"
         echo "     Removed $PREFIX/bin/$cmd"

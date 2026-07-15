@@ -293,18 +293,16 @@ HERMES_SETUP
 chmod +x "$PREFIX/bin/hermes-setup"
 ok "Created $PREFIX/bin/hermes-setup"
 
-# --- hermes-gateway launcher (with Telegram notifications) ---
+# --- hermes-gateway launcher (with Telegram notifications + error diagnostics) ---
 cat > "$PREFIX/bin/hermes-gateway" << 'HERMES_GATEWAY'
 #!/data/data/com.termux/files/usr/bin/bash
 #
-# Hermes Agent gateway launcher with Telegram notifications
+# Hermes Agent gateway launcher with Telegram notifications + error diagnostics
 # Usage: hermes-gateway
 #
-# Set these env vars in ~/.bashrc to enable notifications:
-#   export HERMES_TELEGRAM_BOT_TOKEN="your-token"
-#   export HERMES_TELEGRAM_CHAT_ID="your-chat-id"
-#
 set -euo pipefail
+
+RED='\033[0;31m'; GRN='\033[0;32m'; YLW='\033[1;33m'; CYN='\033[0;36m'; RST='\033[0m'
 
 send_telegram() {
     [ -z "${HERMES_TELEGRAM_BOT_TOKEN:-}" ] || [ -z "${HERMES_TELEGRAM_CHAT_ID:-}" ] && return 0
@@ -312,23 +310,164 @@ send_telegram() {
         -d chat_id="${HERMES_TELEGRAM_CHAT_ID}" -d text="$1" --max-time 10 >/dev/null 2>&1 || true
 }
 
-# Send offline notification when gateway stops (Ctrl+C, kill, crash)
 OFFLINE_SENT=false
 send_offline() {
     [ "$OFFLINE_SENT" = "false" ] && OFFLINE_SENT=true && send_telegram "Hermes Agent Gateway offline :-("
 }
 trap send_offline EXIT
 
-# Notify: gateway is up
+# Check API key exists before starting
+check_api_key() {
+    if [ -z "${GOOGLE_API_KEY:-}" ] && [ -z "${GEMINI_API_KEY:-}" ] && \
+       [ -z "${OPENAI_API_KEY:-}" ] && [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+        echo -e "${RED}❌ No API key found! Set GOOGLE_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY in ~/.bashrc${RST}"
+        send_telegram "Hermes Agent Gateway failed: No API key configured!"
+        exit 1
+    fi
+}
+check_api_key
+
+# Show provider
+if [ -n "${GOOGLE_API_KEY:-}" ] || [ -n "${GEMINI_API_KEY:-}" ]; then
+    echo -e "${CYN}  Provider: Google Gemini${RST}"
+elif [ -z "${OPENAI_API_KEY:-}" ] && [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+    echo -e "${CYN}  Provider: Anthropic${RST}"
+elif [ -n "${OPENAI_API_KEY:-}" ]; then
+    echo -e "${CYN}  Provider: OpenAI${RST}"
+fi
+
 send_telegram "Hermes Agent Gateway online ;-)"
 
 # Start gateway (no exec — trap needs the process to return)
+GATEWAY_EXIT=0
 proot-distro login ubuntu -- bash -c '
 cd "$HOME/hermes-agent" && source venv/bin/activate && exec hermes gateway "$@"
-' -- "$@"
+' -- "$@" || GATEWAY_EXIT=$?
+
+# Show diagnostic help on failure
+if [ "$GATEWAY_EXIT" -ne 0 ]; then
+    echo ""
+    echo -e "${RED}━━━ Gateway exited with errors ━━━${RST}"
+    echo -e "  ${YLW}Common causes:${RST}"
+    echo -e "    1. API key invalid/expired → re-generate at provider dashboard"
+    echo -e "    2. API key not set → run ${CYN}hermes-doctor${RST}"
+    echo -e "    3. Provider API down → try again later"
+    echo ""
+    echo -e "  ${YLW}Debug:${RST} proot-distro login ubuntu → cd hermes-agent → hermes gateway --log-level debug"
+    send_telegram "Hermes Agent Gateway failed (exit $GATEWAY_EXIT). Run: hermes-doctor"
+fi
 HERMES_GATEWAY
 chmod +x "$PREFIX/bin/hermes-gateway"
 ok "Created $PREFIX/bin/hermes-gateway"
+
+# --- hermes-doctor diagnostic launcher ---
+cat > "$PREFIX/bin/hermes-doctor" << 'HERMES_DOCTOR'
+#!/data/data/com.termux/files/usr/bin/bash
+# Hermes Agent Doctor — runs diagnostics inside Ubuntu
+exec proot-distro login ubuntu -- bash -c '
+cd "$HOME/hermes-agent" 2>/dev/null && source venv/bin/activate 2>/dev/null
+# Run the full diagnostic
+RED="\033[0;31m"; GRN="\033[0;32m"; YLW="\033[1;33m"; CYN="\033[0;36m"; RST="\033[0m"; BLD="\033[1m"
+PASS=0; WARN=0; FAIL=0
+pass() { ((PASS++)); echo -e "  ${GRN}✅ PASS${RST}  $*"; }
+warn() { ((WARN++)); echo -e "  ${YLW}⚠️  WARN${RST}  $*"; }
+fail() { ((FAIL++)); echo -e "  ${RED}❌ FAIL${RST}  $*"; }
+info() { echo -e "  ${CYN}ℹ️  $*${RST}"; }
+
+echo -e "${BLD}${CYN}━━━ ☤ Hermes Agent Doctor ━━━${RST}"
+echo ""
+
+echo -e "${BLD}[1/4] Hermes Agent${RST}"
+if [ -d "$HOME/hermes-agent/.git" ]; then
+    pass "Repository present"
+    if [ -d "venv" ] && [ -f "venv/bin/activate" ]; then
+        pass "Virtual environment present"
+        PY_VER=$(python --version 2>&1 | grep -oP "\d+\.\d+")
+        PY_MIN=$(echo "$PY_VER" | cut -d. -f2)
+        if [ "$PY_MIN" -ge 11 ] && [ "$PY_MIN" -le 13 ]; then
+            pass "Python $PY_VER (compatible)"
+        else
+            fail "Python $PY_VER — requires 3.11-3.13. Reinstall hermes-agent."
+        fi
+    else
+        fail "venv missing"
+    fi
+    if hermes --version >/dev/null 2>&1; then
+        pass "hermes command works"
+    else
+        fail "hermes command broken — run: hermes setup"
+    fi
+else
+    fail "Hermes Agent not installed"
+fi
+
+echo ""
+echo -e "${BLD}[2/4] API Keys${RST}"
+KEY_FOUND=false
+if [ -n "${GOOGLE_API_KEY:-}" ]; then
+    pass "GOOGLE_API_KEY set (${#GOOGLE_API_KEY} chars)"
+    [[ "$GOOGLE_API_KEY" =~ ^AIza ]] && pass "Format valid (starts with AIza)" || warn "Does not start with AIza"
+    KEY_FOUND=true
+fi
+if [ -n "${GEMINI_API_KEY:-}" ]; then
+    pass "GEMINI_API_KEY set (${#GEMINI_API_KEY} chars)"
+    KEY_FOUND=true
+fi
+if [ -n "${OPENAI_API_KEY:-}" ]; then
+    pass "OPENAI_API_KEY set (${#OPENAI_API_KEY} chars)"
+    [[ "$OPENAI_API_KEY" =~ ^sk- ]] && pass "Format valid (starts with sk-)" || warn "Does not start with sk-"
+    KEY_FOUND=true
+fi
+if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+    pass "ANTHROPIC_API_KEY set (${#ANTHROPIC_API_KEY} chars)"
+    [[ "$ANTHROPIC_API_KEY" =~ ^sk-ant- ]] && pass "Format valid (starts with sk-ant-)" || warn "Does not start with sk-ant-"
+    KEY_FOUND=true
+fi
+if [ "$KEY_FOUND" = false ]; then
+    fail "No API keys found!"
+    info "Set in ~/.bashrc:"
+    info "  export GOOGLE_API_KEY=\"your-key\""
+    info "  Then: source ~/.bashrc"
+fi
+
+echo ""
+echo -e "${BLD}[3/4] Connectivity${RST}"
+curl -s --max-time 10 https://generativelanguage.googleapis.com >/dev/null 2>&1 && pass "Google AI API reachable" || warn "Google AI API unreachable"
+curl -s --max-time 10 https://api.openai.com >/dev/null 2>&1 && pass "OpenAI API reachable" || warn "OpenAI API unreachable"
+curl -s --max-time 10 https://api.anthropic.com >/dev/null 2>&1 && pass "Anthropic API reachable" || warn "Anthropic API unreachable"
+
+echo ""
+echo -e "${BLD}[4/4] Telegram${RST}"
+if [ -n "${HERMES_TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${HERMES_TELEGRAM_CHAT_ID:-}" ]; then
+    pass "Telegram configured"
+    TG=$(curl -s --max-time 10 "https://api.telegram.org/bot${HERMES_TELEGRAM_BOT_TOKEN}/getMe" 2>/dev/null)
+    if echo "$TG" | grep -q "\"ok\":true"; then
+        BOT=$(echo "$TG" | grep -oP "\"username\":\"[^\"]*\"" | cut -d"\"" -f4)
+        pass "Bot @${BOT} reachable"
+    else
+        warn "Bot token may be invalid"
+    fi
+else
+    info "Telegram not configured (optional)"
+fi
+
+echo ""
+echo -e "${BLD}${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+echo -e "  Results: ${GRN}${PASS} passed${RST}  ${YLW}${WARN} warnings${RST}  ${RED}${FAIL} failed${RST}"
+echo -e "${BLD}${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+if [ "$FAIL" -gt 0 ]; then
+    echo -e "  ${RED}Fix the issues above and run again.${RST}"
+    exit 1
+elif [ "$WARN" -gt 0 ]; then
+    echo -e "  ${YLW}Some warnings — check items above.${RST}"
+else
+    echo -e "  ${GRN}All good! Run ${CYN}hermes gateway${GRN} to start.${RST}"
+fi
+exit 0
+' -- "$@"
+HERMES_DOCTOR
+chmod +x "$PREFIX/bin/hermes-doctor"
+ok "Created $PREFIX/bin/hermes-doctor"
 
 # ──────────────────────────────────────────────
 # [Improvement #6] Install hermes-update

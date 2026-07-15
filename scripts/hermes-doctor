@@ -1,0 +1,247 @@
+#!/data/data/com.termux/files/usr/bin/bash
+#
+# Hermes Agent Doctor — Diagnose and fix common issues
+# Installed by nous_agent.sh to $PREFIX/bin/hermes-doctor
+#
+# Usage: hermes-doctor
+#
+set -euo pipefail
+
+RED='\033[0;31m'; GRN='\033[0;32m'; YLW='\033[1;33m'; CYN='\033[0;36m'; RST='\033[0m'; BLD='\033[1m'
+
+PASS=0; WARN=0; FAIL=0
+
+pass() { ((PASS++)); echo -e "  ${GRN}✅ PASS${RST}  $*"; }
+warn() { ((WARN++)); echo -e "  ${YLW}⚠️  WARN${RST}  $*"; }
+fail() { ((FAIL++)); echo -e "  ${RED}❌ FAIL${RST}  $*"; }
+info() { echo -e "  ${CYN}ℹ️  $*${RST}"; }
+
+echo -e "${BLD}${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+echo -e "${BLD}${CYN}     ☤  Hermes Agent Doctor  ☤${RST}"
+echo -e "${BLD}${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+echo ""
+
+# ═══════════════════════════════════════════
+# 1. Termux environment
+# ═══════════════════════════════════════════
+echo -e "${BLD}[1/6] Termux Environment${RST}"
+
+# Android version
+ANDROID_SDK=$(getprop ro.build.version.sdk 2>/dev/null || echo 0)
+if [ "$ANDROID_SDK" -eq 0 ]; then
+    warn "Could not detect Android version"
+elif [ "$ANDROID_SDK" -lt 30 ]; then
+    fail "Android 11+ required (API 30+). Found API $ANDROID_SDK"
+else
+    pass "Android API $ANDROID_SDK"
+fi
+
+# Storage
+AVAIL_MB=$(df -m /data 2>/dev/null | awk 'NR==2{print $4}' || echo 0)
+if [ "$AVAIL_MB" -gt 3000 ]; then
+    pass "Storage: $((AVAIL_MB / 1024)) GB free"
+elif [ "$AVAIL_MB" -gt 0 ]; then
+    warn "Storage: $((AVAIL_MB / 1024)) GB free (3 GB+ recommended)"
+else
+    warn "Could not check storage"
+fi
+
+# proot-distro
+if command -v proot-distro &>/dev/null; then
+    pass "proot-distro installed"
+else
+    fail "proot-distro not found — run: pkg install proot-distro"
+fi
+
+# ═══════════════════════════════════════════
+# 2. Internet connectivity
+# ═══════════════════════════════════════════
+echo ""
+echo -e "${BLD}[2/6] Internet Connectivity${RST}"
+
+if curl -s --max-time 10 https://github.com >/dev/null 2>&1; then
+    pass "GitHub reachable"
+else
+    fail "GitHub unreachable — check your internet connection"
+fi
+
+if curl -s --max-time 10 https://generativelanguage.googleapis.com >/dev/null 2>&1; then
+    pass "Google AI API reachable"
+elif curl -s --max-time 10 https://api.openai.com >/dev/null 2>&1; then
+    pass "OpenAI API reachable"
+elif curl -s --max-time 10 https://api.anthropic.com >/dev/null 2>&1; then
+    pass "Anthropic API reachable"
+else
+    warn "No AI provider API endpoints reachable"
+fi
+
+# ═══════════════════════════════════════════
+# 3. Hermes Agent installation
+# ═══════════════════════════════════════════
+echo ""
+echo -e "${BLD}[3/6] Hermes Agent Installation${RST}"
+
+# Check inside Ubuntu
+HERMES_CHECK=$(proot-distro login ubuntu -- bash -c '
+    set -e
+    if [ -d "$HOME/hermes-agent/.git" ]; then
+        echo "REPO_OK"
+        cd "$HOME/hermes-agent"
+        if [ -d "venv" ] && [ -f "venv/bin/activate" ]; then
+            echo "VENV_OK"
+            source venv/bin/activate
+            python --version 2>&1 | grep -oP "\d+\.\d+"
+        else
+            echo "VENV_MISSING"
+        fi
+    else
+        echo "REPO_MISSING"
+    fi
+' 2>/dev/null || echo "PROOT_FAILED")
+
+if echo "$HERMES_CHECK" | grep -q "PROOT_FAILED"; then
+    fail "Cannot access Ubuntu — proot-distro may be broken"
+elif echo "$HERMES_CHECK" | grep -q "REPO_MISSING"; then
+    fail "Hermes Agent not installed — run: curl -fsSL .../nous_agent.sh | bash"
+elif echo "$HERMES_CHECK" | grep -q "VENV_MISSING"; then
+    fail "Python venv missing — run: hermes setup"
+else
+    pass "Hermes Agent repository present"
+    pass "Python venv present"
+    PYTHON_VER=$(echo "$HERMES_CHECK" | grep -oP "\d+\.\d+" | head -1)
+    if [ -n "$PYTHON_VER" ]; then
+        # Check if Python version is compatible
+        PY_MAJOR=$(echo "$PYTHON_VER" | cut -d. -f1)
+        PY_MINOR=$(echo "$PYTHON_VER" | cut -d. -f2)
+        if [ "$PY_MAJOR" -eq 3 ] && [ "$PY_MINOR" -ge 11 ] && [ "$PY_MINOR" -le 13 ]; then
+            pass "Python $PYTHON_VER (compatible)"
+        elif [ "$PY_MAJOR" -eq 3 ] && [ "$PY_MINOR" -ge 14 ]; then
+            fail "Python $PYTHON_VER is too new (requires <3.14). Run the installer again to fix."
+        else
+            warn "Python $PYTHON_VER — may have compatibility issues"
+        fi
+    fi
+fi
+
+# Check hermes command
+if proot-distro login ubuntu -- bash -c 'cd ~/hermes-agent && source venv/bin/activate && hermes --version' >/dev/null 2>&1; then
+    pass "hermes command works"
+else
+    fail "hermes command broken — run: hermes setup"
+fi
+
+# ═══════════════════════════════════════════
+# 4. Termux launcher commands
+# ═══════════════════════════════════════════
+echo ""
+echo -e "${BLD}[4/6] Termux Launchers${RST}"
+
+for cmd in hermes hermes-setup hermes-update hermes-gateway hermes-doctor; do
+    if [ -x "$PREFIX/bin/$cmd" ]; then
+        pass "$cmd command installed"
+    else
+        fail "$cmd command missing — re-run the installer"
+    fi
+done
+
+# ═══════════════════════════════════════════
+# 5. API Key configuration
+# ═══════════════════════════════════════════
+echo ""
+echo -e "${BLD}[5/6] API Key Configuration${RST}"
+
+# Check for common API key environment variables
+KEY_FOUND=false
+
+if [ -n "${GOOGLE_API_KEY:-}" ]; then
+    pass "GOOGLE_API_KEY is set (${#GOOGLE_API_KEY} chars)"
+    KEY_FOUND=true
+    # Quick validation — does it look like a real key?
+    if [[ "$GOOGLE_API_KEY" =~ ^AIza ]]; then
+        pass "GOOGLE_API_KEY format looks valid (starts with AIza)"
+    else
+        warn "GOOGLE_API_KEY doesn't start with 'AIza' — may be invalid"
+    fi
+fi
+
+if [ -n "${GEMINI_API_KEY:-}" ]; then
+    pass "GEMINI_API_KEY is set (${#GEMINI_API_KEY} chars)"
+    KEY_FOUND=true
+fi
+
+if [ -n "${OPENAI_API_KEY:-}" ]; then
+    pass "OPENAI_API_KEY is set (${#OPENAI_API_KEY} chars)"
+    KEY_FOUND=true
+    if [[ "$OPENAI_API_KEY" =~ ^sk- ]]; then
+        pass "OPENAI_API_KEY format looks valid (starts with sk-)"
+    else
+        warn "OPENAI_API_KEY doesn't start with 'sk-' — may be invalid"
+    fi
+fi
+
+if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+    pass "ANTHROPIC_API_KEY is set (${#ANTHROPIC_API_KEY} chars)"
+    KEY_FOUND=true
+    if [[ "$ANTHROPIC_API_KEY" =~ ^sk-ant- ]]; then
+        pass "ANTHROPIC_API_KEY format looks valid (starts with sk-ant-)"
+    else
+        warn "ANTHROPIC_API_KEY doesn't start with 'sk-ant-' — may be invalid"
+    fi
+fi
+
+if [ "$KEY_FOUND" = false ]; then
+    fail "No API keys found in environment!"
+    info "Set your key in ~/.bashrc:"
+    info "  export GOOGLE_API_KEY=\"your-key\""
+    info "  export OPENAI_API_KEY=\"your-key\""
+    info "  export ANTHROPIC_API_KEY=\"your-key\""
+    info "Then run: source ~/.bashrc"
+fi
+
+# ═══════════════════════════════════════════
+# 6. Telegram notifications (optional)
+# ═══════════════════════════════════════════
+echo ""
+echo -e "${BLD}[6/6] Telegram Notifications (optional)${RST}"
+
+if [ -n "${HERMES_TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${HERMES_TELEGRAM_CHAT_ID:-}" ]; then
+    pass "Telegram notifications configured"
+    # Test the bot
+    TG_RESULT=$(curl -s --max-time 10 "https://api.telegram.org/bot${HERMES_TELEGRAM_BOT_TOKEN}/getMe" 2>/dev/null)
+    if echo "$TG_RESULT" | grep -q '"ok":true'; then
+        BOT_NAME=$(echo "$TG_RESULT" | grep -oP '"username":"[^"]*"' | cut -d'"' -f4)
+        pass "Telegram bot @${BOT_NAME} is reachable"
+    else
+        warn "Telegram bot token may be invalid — check @BotFather"
+    fi
+elif [ -n "${HERMES_TELEGRAM_BOT_TOKEN:-}" ] || [ -n "${HERMES_TELEGRAM_CHAT_ID:-}" ]; then
+    warn "Telegram partially configured — need both BOT_TOKEN and CHAT_ID"
+else
+    info "Telegram notifications not configured (optional)"
+    info "See README for setup instructions"
+fi
+
+# ═══════════════════════════════════════════
+# Summary
+# ═══════════════════════════════════════════
+echo ""
+echo -e "${BLD}${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+echo -e "${BLD}  Results: ${GRN}${PASS} passed${RST}  ${YLW}${WARN} warnings${RST}  ${RED}${FAIL} failed${RST}"
+echo -e "${BLD}${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+
+if [ "$FAIL" -gt 0 ]; then
+    echo ""
+    echo -e "  ${RED}Fix the issues above and run ${CYN}hermes-doctor${RED} again.${RST}"
+    echo ""
+    exit 1
+elif [ "$WARN" -gt 0 ]; then
+    echo ""
+    echo -e "  ${YLW}Some warnings — check the items above.${RST}"
+    echo ""
+    exit 0
+else
+    echo ""
+    echo -e "  ${GRN}Everything looks good! Run ${CYN}hermes gateway${GRN} to start.${RST}"
+    echo ""
+    exit 0
+fi

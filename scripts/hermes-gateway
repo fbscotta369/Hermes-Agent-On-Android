@@ -13,6 +13,8 @@
 #
 set -euo pipefail
 
+RED='\033[0;31m'; GRN='\033[0;32m'; YLW='\033[1;33m'; CYN='\033[0;36m'; RST='\033[0m'
+
 # ── Telegram notification helper ──
 send_telegram() {
     [ -z "${HERMES_TELEGRAM_BOT_TOKEN:-}" ] || [ -z "${HERMES_TELEGRAM_CHAT_ID:-}" ] && return 0
@@ -32,10 +34,74 @@ send_offline() {
 }
 trap send_offline EXIT
 
+# ── Pre-flight check: is an API key configured? ──
+check_api_key() {
+    if [ -z "${GOOGLE_API_KEY:-}" ] && [ -z "${GEMINI_API_KEY:-}" ] && \
+       [ -z "${OPENAI_API_KEY:-}" ] && [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+        echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+        echo -e "${RED}  ❌  No API key found in environment!${RST}"
+        echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+        echo ""
+        echo -e "  ${YLW}Set one of these in ~/.bashrc:${RST}"
+        echo -e "    export ${CYN}GOOGLE_API_KEY${RST}=\"your-gemini-key\""
+        echo -e "    export ${CYN}OPENAI_API_KEY${RST}=\"your-openai-key\""
+        echo -e "    export ${CYN}ANTHROPIC_API_KEY${RST}=\"your-claude-key\""
+        echo ""
+        echo -e "  Then run: ${CYN}source ~/.bashrc${RST}"
+        echo -e "  Or run ${CYN}hermes-doctor${RST} for full diagnostics."
+        echo ""
+        send_telegram "Hermes Agent Gateway failed: No API key configured!"
+        exit 1
+    fi
+}
+
+check_api_key
+
+# ── Show which provider is configured ──
+if [ -n "${GOOGLE_API_KEY:-}" ] || [ -n "${GEMINI_API_KEY:-}" ]; then
+    echo -e "${CYN}  Provider: Google Gemini${RST}"
+elif [ -n "${OPENAI_API_KEY:-}" ]; then
+    echo -e "${CYN}  Provider: OpenAI${RST}"
+elif [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+    echo -e "${CYN}  Provider: Anthropic${RST}"
+fi
+
 # ── Send online notification on start ──
 send_telegram "Hermes Agent Gateway online ;-)"
 
 # ── Start the gateway (no exec — trap needs the process to return) ──
+GATEWAY_EXIT=0
 proot-distro login ubuntu -- bash -c '
 cd "$HOME/hermes-agent" && source venv/bin/activate && exec hermes gateway "$@"
-' -- "$@"
+' -- "$@" || GATEWAY_EXIT=$?
+
+# ── If gateway failed, show diagnostic help ──
+if [ "$GATEWAY_EXIT" -ne 0 ]; then
+    echo ""
+    echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+    echo -e "${RED}  ⚠️  Hermes Agent Gateway exited with errors${RST}"
+    echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+    echo ""
+    echo -e "  ${YLW}Common causes:${RST}"
+    echo -e "    1. ${CYN}API key invalid or expired${RST}"
+    echo -e "       → Re-generate at your provider's dashboard"
+    echo -e "       → Run ${CYN}hermes setup${RST} to reconfigure"
+    echo ""
+    echo -e "    2. ${CYN}API key not set${RST}"
+    echo -e "       → Run ${CYN}hermes-doctor${RST} to check configuration"
+    echo ""
+    echo -e "    3. ${CYN}Provider API down or rate-limited${RST}"
+    echo -e "       → Check status: try again in a few minutes"
+    echo ""
+    echo -e "  ${YLW}For detailed logs:${RST}"
+    echo -e "    proot-distro login ubuntu"
+    echo -e "    cd ~/hermes-agent && source venv/bin/activate"
+    echo -e "    hermes gateway --log-level debug"
+    echo ""
+    echo -e "  ${YLW}Or run diagnostics:${RST}"
+    echo -e "    ${CYN}hermes-doctor${RST}"
+    echo ""
+
+    # Capture relevant error from the gateway output for Telegram
+    send_telegram "Hermes Agent Gateway failed (exit code $GATEWAY_EXIT). Check: hermes-doctor"
+fi
