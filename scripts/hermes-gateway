@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 #
-# Hermes Agent gateway launcher with Telegram notifications
+# Hermes Agent gateway launcher with Telegram notifications + error diagnostics
 # Installed by nous_agent.sh to $PREFIX/bin/hermes-gateway
 #
 # Usage: hermes-gateway
@@ -102,6 +102,5 @@ if [ "$GATEWAY_EXIT" -ne 0 ]; then
     echo -e "    ${CYN}hermes-doctor${RST}"
     echo ""
 
-    # Capture relevant error from the gateway output for Telegram
     send_telegram "Hermes Agent Gateway failed (exit code $GATEWAY_EXIT). Check: hermes-doctor"
 fi

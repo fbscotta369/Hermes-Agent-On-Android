@@ -15,17 +15,20 @@ set -euo pipefail
 
 GRN='\033[0;32m'
 CYN='\033[0;36m'
-YEL='\033[0;33m'
+YLW='\033[1;33m'
 RED='\033[0;31m'
 RST='\033[0m'
 
 step() { echo -e "${GRN}━━━ ${CYN}$*${RST}"; }
 ok()   { echo -e "${GRN}  ✅ $*${RST}"; }
+warn() { echo -e "${YLW}  ⚠️  $*${RST}"; }
 fail() { echo -e "${RED}  ❌ $*${RST}"; exit 1; }
 
 clear
 echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${GRN}    ☤  Hermes Agent — Direct Termux Install${RST}"
+echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+echo -e "${GRN}                AIIA-Labs"
 echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo ""
 
@@ -57,20 +60,10 @@ step "Installing dependencies"
 ok "Updating package lists..."
 pkg update -y -o Dpkg::Options::="--force-confnew" 2>/dev/null || pkg update -y || true
 
-ok "Installing Python..."
-pkg install -y python
-
-# Patch Python sysconfig for psutil compatibility (Python 3.13 on Termux)
-step "Patching Python sysconfig for psutil compatibility..."
-_file="$(find $PREFIX/lib/python3.* -name "_sysconfigdata*.py" 2>/dev/null | head -1)"
-if [ -f "$_file" ]; then
-    cp "$_file" "$_file.backup"
-    sed -i 's|-fno-openmp-implicit-rpath||g' "$_file"
-    rm -rf $PREFIX/lib/python3.*/__pycache__
-    ok "Python patched"
-else
-    echo -e "${YEL}  ⚠️  Python sysconfig not found, patches may be needed for psutil${RST}"
-fi
+ok "Installing uv (Python version manager)..."
+curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH="$HOME/.local/bin:$PATH"
+ok "uv ready: $(uv --version)"
 
 ok "Installing other dependencies..."
 pkg install -y git clang rust make pkg-config libffi openssl nodejs ripgrep ffmpeg
@@ -83,19 +76,21 @@ rm -rf hermes-agent 2>/dev/null
 git clone --recurse-submodules --depth 1 https://github.com/NousResearch/hermes-agent.git
 cd hermes-agent
 
-ok "Setting up Python virtual environment..."
-python -m venv venv
+ok "Setting up Python virtual environment with compatible version..."
+uv venv --python ">=3.11,<3.14" venv
 source venv/bin/activate
 
 export ANDROID_API_LEVEL="$(getprop ro.build.version.sdk 2>/dev/null || echo 24)"
 
+ok "Python version: $(python --version)"
+
 ok "Upgrading pip..."
-python -m pip install --upgrade pip setuptools wheel
+uv pip install --upgrade pip setuptools wheel
 
 ok "Installing Hermes Agent (this may take 5-10 minutes)..."
-if ! python -m pip install -e '.[termux]' -c constraints-termux.txt; then
-    echo -e "${YEL}  ⚠️  Termux extras install failed, trying base install...${RST}"
-    python -m pip install -e .
+if ! uv pip install -e '.[termux]' -c constraints-termux.txt >/dev/null 2>&1; then
+    warn "Termux extras install failed, trying base install..."
+    uv pip install -e .
 fi
 
 # Create global symlink

@@ -26,7 +26,6 @@ echo ""
 # ═══════════════════════════════════════════
 echo -e "${BLD}[1/6] Termux Environment${RST}"
 
-# Android version
 ANDROID_SDK=$(getprop ro.build.version.sdk 2>/dev/null || echo 0)
 if [ "$ANDROID_SDK" -eq 0 ]; then
     warn "Could not detect Android version"
@@ -36,7 +35,6 @@ else
     pass "Android API $ANDROID_SDK"
 fi
 
-# Storage
 AVAIL_MB=$(df -m /data 2>/dev/null | awk 'NR==2{print $4}' || echo 0)
 if [ "$AVAIL_MB" -gt 3000 ]; then
     pass "Storage: $((AVAIL_MB / 1024)) GB free"
@@ -46,7 +44,6 @@ else
     warn "Could not check storage"
 fi
 
-# proot-distro
 if command -v proot-distro &>/dev/null; then
     pass "proot-distro installed"
 else
@@ -76,12 +73,11 @@ else
 fi
 
 # ═══════════════════════════════════════════
-# 3. Hermes Agent installation
+# 3. Hermes Agent installation (inside Ubuntu)
 # ═══════════════════════════════════════════
 echo ""
 echo -e "${BLD}[3/6] Hermes Agent Installation${RST}"
 
-# Check inside Ubuntu
 HERMES_CHECK=$(proot-distro login ubuntu -- bash -c '
     set -e
     if [ -d "$HOME/hermes-agent/.git" ]; then
@@ -90,7 +86,7 @@ HERMES_CHECK=$(proot-distro login ubuntu -- bash -c '
         if [ -d "venv" ] && [ -f "venv/bin/activate" ]; then
             echo "VENV_OK"
             source venv/bin/activate
-            python --version 2>&1 | grep -oP "\d+\.\d+"
+            python --version 2>&1 | cut -d" " -f2
         else
             echo "VENV_MISSING"
         fi
@@ -108,9 +104,8 @@ elif echo "$HERMES_CHECK" | grep -q "VENV_MISSING"; then
 else
     pass "Hermes Agent repository present"
     pass "Python venv present"
-    PYTHON_VER=$(echo "$HERMES_CHECK" | grep -oP "\d+\.\d+" | head -1)
+    PYTHON_VER=$(echo "$HERMES_CHECK" | grep -E "^[0-9]+\.[0-9]+" | head -1)
     if [ -n "$PYTHON_VER" ]; then
-        # Check if Python version is compatible
         PY_MAJOR=$(echo "$PYTHON_VER" | cut -d. -f1)
         PY_MINOR=$(echo "$PYTHON_VER" | cut -d. -f2)
         if [ "$PY_MAJOR" -eq 3 ] && [ "$PY_MINOR" -ge 11 ] && [ "$PY_MINOR" -le 13 ]; then
@@ -150,13 +145,11 @@ done
 echo ""
 echo -e "${BLD}[5/6] API Key Configuration${RST}"
 
-# Check for common API key environment variables
 KEY_FOUND=false
 
 if [ -n "${GOOGLE_API_KEY:-}" ]; then
     pass "GOOGLE_API_KEY is set (${#GOOGLE_API_KEY} chars)"
     KEY_FOUND=true
-    # Quick validation — does it look like a real key?
     if [[ "$GOOGLE_API_KEY" =~ ^AIza ]]; then
         pass "GOOGLE_API_KEY format looks valid (starts with AIza)"
     else
@@ -206,10 +199,9 @@ echo -e "${BLD}[6/6] Telegram Notifications (optional)${RST}"
 
 if [ -n "${HERMES_TELEGRAM_BOT_TOKEN:-}" ] && [ -n "${HERMES_TELEGRAM_CHAT_ID:-}" ]; then
     pass "Telegram notifications configured"
-    # Test the bot
     TG_RESULT=$(curl -s --max-time 10 "https://api.telegram.org/bot${HERMES_TELEGRAM_BOT_TOKEN}/getMe" 2>/dev/null)
     if echo "$TG_RESULT" | grep -q '"ok":true'; then
-        BOT_NAME=$(echo "$TG_RESULT" | grep -oP '"username":"[^"]*"' | cut -d'"' -f4)
+        BOT_NAME=$(echo "$TG_RESULT" | grep -o '"username":"[^"]*"' | cut -d'"' -f4)
         pass "Telegram bot @${BOT_NAME} is reachable"
     else
         warn "Telegram bot token may be invalid — check @BotFather"

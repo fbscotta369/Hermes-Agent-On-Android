@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 #
-# Hermes Agent launcher — transparently enters Ubuntu + activates venv
+# Hermes Agent launcher — transparently enters Ubuntu + venv
 # Installed by nous_agent.sh to $PREFIX/bin/hermes
 # Usage: hermes [args...]
 #

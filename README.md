@@ -44,8 +44,8 @@ curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android
 1. ✅ Checks your Android version, storage, and internet connectivity
 2. ✅ Installs proot-distro + Ubuntu (if not already present)
 3. ✅ Clones the latest stable Hermes Agent
-4. ✅ Sets up the Python virtual environment
-5. ✅ Installs `hermes`, `hermes-setup`, `hermes-update` commands for Termux
+4. ✅ Sets up the Python virtual environment with a compatible Python version
+5. ✅ Installs `hermes`, `hermes-setup`, `hermes-gateway`, `hermes-doctor`, `hermes-update` commands
 
 ### 🔧 After install, just type:
 
@@ -91,7 +91,7 @@ curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android
 | `hermes setup` | First-time configuration wizard |
 | `hermes gateway` | Start the gateway (with Telegram notifications) |
 | `hermes-doctor` | Run diagnostics (API keys, Python, connectivity) |
-| `hermes-update` | Update to the latest version |
+| `hermes-update` | Update to the latest version (launchers + package) |
 | `hermes-update --edge` | Update to latest main branch |
 | `hermes-setup` | Alias for `hermes setup` |
 
@@ -106,6 +106,83 @@ cd Hermes-Agent-On-Android
 chmod +x nous_agent.sh
 ./nous_agent.sh
 ```
+
+---
+
+## 📱 Telegram Notifications (Optional)
+
+Get notified on your phone when the Hermes Agent Gateway starts or stops.
+
+### 1. Create a Telegram Bot
+
+1. Open Telegram and message **[@BotFather](https://t.me/BotFather)**
+2. Send `/newbot` and follow the prompts
+3. Copy the **bot token** (looks like `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`)
+
+### 2. Get Your Chat ID
+
+1. Open your new bot in Telegram and send any message
+2. Visit `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates` in a browser
+3. Find `"chat":{"id":` — that number is your **chat ID**
+
+### 3. Set Environment Variables
+
+Add these to your Termux `~/.bashrc`:
+
+```bash
+export HERMES_TELEGRAM_BOT_TOKEN="your-bot-token-here"
+export HERMES_TELEGRAM_CHAT_ID="your-chat-id-here"
+```
+
+Then reload:
+
+```bash
+source ~/.bashrc
+```
+
+### 4. Verify with hermes-doctor
+
+```bash
+hermes-doctor
+```
+
+The `[6/6] Telegram Notifications` section will confirm your bot is reachable.
+
+### 5. Start the Gateway
+
+```bash
+hermes-gateway
+```
+
+You'll receive:
+- **"Hermes Agent Gateway online ;-)"** — when the gateway starts
+- **"Hermes Agent Gateway offline :-("** — when it stops (Ctrl+C, kill, or crash)
+
+> 💡 If the env vars aren't set, the gateway still works — just without notifications.
+
+---
+
+## 🔄 Updating
+
+```bash
+# Update everything (launchers + Hermes Agent package)
+hermes-update
+
+# Update to latest main branch (bleeding edge)
+hermes-update --edge
+```
+
+> 💡 **`hermes-update` refreshes everything** — it pulls the latest launcher scripts from GitHub AND updates the Python package inside Ubuntu. Run it on all your devices to get the latest features.
+
+### Updating from an older version
+
+If you installed before Telegram notifications / hermes-doctor were added, just run:
+
+```bash
+hermes-update
+```
+
+This will download the new launchers and update the Python package in one step. No need to re-run the full installer.
 
 ---
 
@@ -124,10 +201,6 @@ Hermes-Agent-On-Android/
 │   └── uninstall.sh       # Clean removal script
 ├── assets/
 │   └── aiia-labs-logo.png # AIIA-Labs branding
-├── agent_install.sh       # ⚠️ Legacy
-├── hermes_install.sh      # ⚠️ Legacy
-├── proot_install.sh       # ⚠️ Legacy
-├── nous_hermes_agent_install.sh  # ⚠️ Legacy
 ├── .gitignore
 └── README.md
 ```
@@ -185,82 +258,6 @@ ollama run gemma4:31b-cloud
 
 ---
 
-## 🔄 Updating
-
-```bash
-# Update everything (launchers + Hermes Agent package)
-hermes-update
-
-# Update to latest main branch (bleeding edge)
-hermes-update --edge
-```
-
-> 💡 **`hermes-update` now refreshes everything** — it pulls the latest launcher scripts from GitHub AND updates the Python package inside Ubuntu. Run it on all your devices to get the latest features (Telegram notifications, hermes-doctor, etc.).
-
-### Updating from an older version
-
-If you installed before Telegram notifications / hermes-doctor were added, just run:
-
-```bash
-hermes-update
-```
-
-This will download the new launchers and update the Python package in one step. No need to re-run the full installer.
-
-## 🗑️ Uninstalling
-
-```bash
-# From inside the repo:
-bash scripts/uninstall.sh
-```
-
----
-
-## 📱 Telegram Notifications (Optional)
-
-Get notified on your phone when the Hermes Agent Gateway starts or stops.
-
-### 1. Create a Telegram Bot
-
-1. Open Telegram and message **[@BotFather](https://t.me/BotFather)**
-2. Send `/newbot` and follow the prompts
-3. Copy the **bot token** (looks like `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`)
-
-### 2. Get Your Chat ID
-
-1. Open your new bot in Telegram and send any message
-2. Visit `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates` in a browser
-3. Find `"chat":{"id":` — that number is your **chat ID**
-
-### 3. Set Environment Variables
-
-Add these to your Termux `~/.bashrc`:
-
-```bash
-export HERMES_TELEGRAM_BOT_TOKEN="your-bot-token-here"
-export HERMES_TELEGRAM_CHAT_ID="your-chat-id-here"
-```
-
-Then reload:
-
-```bash
-source ~/.bashrc
-```
-
-### 4. Start the Gateway
-
-```bash
-hermes-gateway
-```
-
-You'll receive:
-- **"Hermes Agent Gateway online ;-)"** — when the gateway starts
-- **"Hermes Agent Gateway offline :-("** — when it stops (Ctrl+C, kill, or crash)
-
-> 💡 If the env vars aren't set, the gateway still works — just without notifications.
-
----
-
 ## 🔧 Troubleshooting
 
 ### "Provider authentication failed" / "Check configured credentials"
@@ -302,10 +299,27 @@ hermes gateway --log-level debug
 
 ### "Python 3.14 not in <3.14" error
 
-Re-run the installer — it uses `uv` to install a compatible Python version:
+Re-run the installer — it uses `uv` to automatically install a compatible Python version:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/nous_agent.sh | bash
+```
+
+### hermes-doctor not found
+
+If `hermes-doctor` is missing, update your launchers:
+
+```bash
+hermes-update
+```
+
+---
+
+## 🗑️ Uninstalling
+
+```bash
+# From inside the repo:
+bash scripts/uninstall.sh
 ```
 
 ---

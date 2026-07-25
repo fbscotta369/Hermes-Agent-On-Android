@@ -1,7 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 #
-# Hermes Agent updater — updates both the Python package AND Termux launchers
+# Hermes Agent updater — updates both Termux launchers AND Python package
 # Installed by nous_agent.sh to $PREFIX/bin/hermes-update
+#
 # Usage: hermes-update [--edge]
 #
 set -euo pipefail
@@ -16,8 +17,7 @@ echo -e "${CYN}━━━ Updating Hermes Agent ━━━${RST}"
 # ── Step 1: Refresh Termux launchers from GitHub ──
 echo -e "${YLW}  → Refreshing Termux launchers...${RST}"
 
-LAUNCHERS="hermes hermes-setup hermes-gateway hermes-doctor hermes-update"
-for cmd in $LAUNCHERS; do
+for cmd in hermes hermes-setup hermes-gateway hermes-doctor hermes-update; do
     if curl -sf "${RAW}/${cmd}" -o "$PREFIX/bin/${cmd}" 2>/dev/null; then
         chmod +x "$PREFIX/bin/${cmd}"
         echo -e "  ${GRN}✓${RST} ${cmd}"
@@ -29,7 +29,7 @@ done
 # ── Step 2: Update Hermes Agent inside Ubuntu ──
 if [ "${1:-}" = "--edge" ]; then
     echo -e "${YLW}  → Updating Hermes Agent (edge — main branch)...${RST}"
-    exec proot-distro login ubuntu -- bash -c '
+    proot-distro login ubuntu -- bash -c '
 set -euo pipefail
 export PATH="$HOME/.local/bin:$PATH"
 cd "$HOME/hermes-agent"
@@ -44,7 +44,7 @@ echo "   Run: hermes"
 '
 else
     echo -e "${YLW}  → Updating Hermes Agent (stable — latest tag)...${RST}"
-    exec proot-distro login ubuntu -- bash -c '
+    proot-distro login ubuntu -- bash -c '
 set -euo pipefail
 export PATH="$HOME/.local/bin:$PATH"
 cd "$HOME/hermes-agent"
