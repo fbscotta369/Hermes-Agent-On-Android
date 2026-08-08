@@ -13,3 +13,25 @@ Thumbs.db
 *.tmp
 *.bak
 .zcode/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Keys / certificates
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Common credential files
+credentials.json
+service-account*.json
+
+# Local secret directories
+.secrets/
+secrets/
+
+# direnv
+.direnv/

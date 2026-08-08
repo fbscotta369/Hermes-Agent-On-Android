@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/project-context"
+
+cd "$PROJECT_ROOT" || exit 1
+
+printf '\n'
+printf '========================================\n'
+printf ' A2A Multi-Agent Environment\n'
+printf '========================================\n'
+
+printf '\nProject: %s\n' "$PROJECT_NAME"
+printf 'Root:    %s\n' "$PROJECT_ROOT"
+
+if [[ -n "$GIT_REMOTE" ]]; then
+    printf 'Remote:  configured\n'
+fi
+
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo
+    echo "Branch:"
+    git branch --show-current
+
+    echo
+    echo "Working tree:"
+    git status --short
+
+    echo
+    echo "Recent commits:"
+    git log -5 --oneline
+fi
+
+"$SCRIPT_DIR/agent-doctor"
+
+echo
+echo "Agent startup instruction:"
+echo
+echo "  Continue the current project work using the A2A protocol."
+echo

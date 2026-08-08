@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/project-context"
+
+cd "$PROJECT_ROOT" || exit 1
+
+printf '\n'
+printf '========================================\n'
+printf ' A2A Agent Doctor\n'
+printf '========================================\n\n'
+
+printf 'Project\n'
+printf '%s\n' '-------'
+printf 'Name:        %s\n' "$PROJECT_NAME"
+printf 'Root:        %s\n' "$PROJECT_ROOT"
+printf 'Slug:        %s\n' "$PROJECT_SLUG"
+
+if [[ -n "$GIT_REMOTE" ]]; then
+    printf 'Remote:      configured\n'
+else
+    printf 'Remote:      not configured\n'
+fi
+
+printf 'Secret dir:  %s\n' "$PROJECT_SECRET_DIR"
+
+printf '\n'
+printf 'A2A files\n'
+printf '%s\n' '---------'
+
+for file in \
+    AGENTS.md \
+    A2A-How2.md \
+    A2A-WIP.md \
+    A2A-ArchMap.md \
+    A2A-Bugs.md \
+    A2A-PTI.md \
+    A2A-Audit.md
+do
+    if [[ -f "$PROJECT_ROOT/$file" ]]; then
+        printf 'OK      %s\n' "$file"
+    else
+        printf 'MISSING %s\n' "$file"
+    fi
+done
+
+printf '\n'
+printf 'Common development tools\n'
+printf '%s\n' '------------------------'
+
+check_cmd() {
+    local cmd="$1"
+
+    if command -v "$cmd" >/dev/null 2>&1; then
+        printf 'OK      %s\n' "$cmd"
+    else
+        printf 'INFO    %s unavailable\n' "$cmd"
+    fi
+}
+
+for cmd in \
+    git gh \
+    node npm npx pnpm yarn bun \
+    python python3 pip uv \
+    docker docker-compose \
+    make \
+    vercel supabase gcloud \
+    direnv
+do
+    check_cmd "$cmd"
+done
+
+printf '\n'
+printf 'Common AI provider variables\n'
+printf '%s\n' '----------------------------'
+
+check_env() {
+    local var="$1"
+
+    if [[ -n "${!var:-}" ]]; then
+        printf 'AVAILABLE %s\n' "$var"
+    else
+        printf 'ABSENT    %s\n' "$var"
+    fi
+}
+
+for var in \
+    OPENAI_API_KEY \
+    ANTHROPIC_API_KEY \
+    OPENROUTER_API_KEY \
+    GROQ_API_KEY \
+    GEMINI_API_KEY \
+    GOOGLE_API_KEY \
+    KIMI_API_KEY
+do
+    check_env "$var"
+done
+
+printf '\n'
+printf 'CLI authentication\n'
+printf '%s\n' '------------------'
+
+if command -v gh >/dev/null 2>&1; then
+    if gh auth status >/dev/null 2>&1; then
+        printf 'OK      GitHub CLI authenticated\n'
+    else
+        printf 'MISSING GitHub CLI authentication\n'
+    fi
+fi
+
+if command -v vercel >/dev/null 2>&1; then
+    if vercel whoami >/dev/null 2>&1; then
+        printf 'OK      Vercel CLI authenticated\n'
+    else
+        printf 'MISSING Vercel CLI authentication\n'
+    fi
+fi
+
+if command -v supabase >/dev/null 2>&1; then
+    if supabase projects list >/dev/null 2>&1; then
+        printf 'OK      Supabase CLI authenticated\n'
+    else
+        printf 'INFO    Supabase authentication unavailable or inaccessible\n'
+    fi
+fi
+
+if command -v gcloud >/dev/null 2>&1; then
+    ACTIVE_GCLOUD_ACCOUNT="$(
+        gcloud auth list \
+            --filter=status:ACTIVE \
+            --format='value(account)' \
+            2>/dev/null | head -n1
+    )"
+
+    if [[ -n "$ACTIVE_GCLOUD_ACCOUNT" ]]; then
+        printf 'OK      Google Cloud CLI authenticated\n'
+    else
+        printf 'MISSING Google Cloud CLI authentication\n'
+    fi
+
+    if gcloud auth application-default print-access-token >/dev/null 2>&1; then
+        printf 'OK      Google Application Default Credentials\n'
+    else
+        printf 'INFO    Google Application Default Credentials unavailable\n'
+    fi
+fi
+
+printf '\n'
+printf 'Secret storage\n'
+printf '%s\n' '--------------'
+
+if [[ -d "$PROJECT_SECRET_DIR" ]]; then
+    printf 'OK      Project secret directory exists\n'
+else
+    printf 'MISSING Project secret directory\n'
+fi
+
+for file in app.env ai-providers.env deployment.env; do
+    if [[ -f "$PROJECT_SECRET_DIR/$file" ]]; then
+        printf 'OK      %s exists\n' "$file"
+    else
+        printf 'INFO    %s absent\n' "$file"
+    fi
+done
+
+printf '\n'
+printf '========================================\n'
+printf ' No secret values were displayed.\n'
+printf '========================================\n\n'

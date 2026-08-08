@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -u
+
+if PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+    :
+else
+    PROJECT_ROOT="$(pwd)"
+fi
+
+PROJECT_NAME="$(basename "$PROJECT_ROOT")"
+
+PROJECT_SLUG="$(
+    printf '%s' "$PROJECT_NAME" \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed -E 's/[^a-z0-9._-]+/-/g; s/^-+//; s/-+$//'
+)"
+
+if [[ -z "$PROJECT_SLUG" ]]; then
+    PROJECT_SLUG="project"
+fi
+
+GIT_REMOTE="$(git -C "$PROJECT_ROOT" remote get-url origin 2>/dev/null || true)"
+
+PROJECT_SECRET_DIR="$HOME/.config/a2a-projects/$PROJECT_SLUG"
+
+export PROJECT_ROOT
+export PROJECT_NAME
+export PROJECT_SLUG
+export GIT_REMOTE
+export PROJECT_SECRET_DIR
+
+if [[ "${1:-}" == "--print" ]]; then
+    printf 'PROJECT_ROOT=%s\n' "$PROJECT_ROOT"
+    printf 'PROJECT_NAME=%s\n' "$PROJECT_NAME"
+    printf 'PROJECT_SLUG=%s\n' "$PROJECT_SLUG"
+    printf 'GIT_REMOTE=%s\n' "$GIT_REMOTE"
+    printf 'PROJECT_SECRET_DIR=%s\n' "$PROJECT_SECRET_DIR"
+fi

@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/project-context"
+
+printf '\n'
+printf 'A2A Authentication Status — %s\n' "$PROJECT_NAME"
+printf '========================================\n'
+
+echo
+echo "[GitHub]"
+
+if command -v gh >/dev/null 2>&1; then
+    gh auth status 2>&1 || true
+else
+    echo "GitHub CLI not installed"
+fi
+
+echo
+echo "[Vercel]"
+
+if command -v vercel >/dev/null 2>&1; then
+    vercel whoami 2>/dev/null || echo "Not authenticated"
+else
+    echo "Vercel CLI not installed"
+fi
+
+echo
+echo "[Supabase]"
+
+if command -v supabase >/dev/null 2>&1; then
+    if supabase projects list >/dev/null 2>&1; then
+        echo "Authenticated"
+    else
+        echo "Authentication unavailable or inaccessible"
+    fi
+else
+    echo "Supabase CLI not installed"
+fi
+
+echo
+echo "[Google Cloud]"
+
+if command -v gcloud >/dev/null 2>&1; then
+    ACCOUNT="$(
+        gcloud auth list \
+            --filter=status:ACTIVE \
+            --format='value(account)' \
+            2>/dev/null | head -n1
+    )"
+
+    if [[ -n "$ACCOUNT" ]]; then
+        echo "CLI authentication available"
+    else
+        echo "No active gcloud account"
+    fi
+
+    if gcloud auth application-default print-access-token >/dev/null 2>&1; then
+        echo "Application Default Credentials available"
+    else
+        echo "Application Default Credentials unavailable"
+    fi
+else
+    echo "gcloud CLI not installed"
+fi
+
+echo
+echo "No token or secret values were displayed."
