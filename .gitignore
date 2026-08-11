@@ -33,5 +33,8 @@ service-account*.json
 .secrets/
 secrets/
 
+# A2A project-scoped secrets are stored outside Git in ~/.config/a2a-projects/
+# No .envrc exclusion needed - it's committed for configuration
+
 # direnv
 .direnv/

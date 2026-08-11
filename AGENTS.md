@@ -334,3 +334,6 @@ Before stopping substantial work:
 
 The next AI agent should be able to continue without asking the human to
 reconstruct the previous session.
+## Shared startup contract
+- Before starting a new app or resuming an existing app, read `/home/fb/hermes-agent-backup/Hermes Agent BackUp GitHub Repo/A2A-AIIA-Labs-Multi-Agent-pp-Factory-Development-System-v369.md`.
+- Then follow this repo's local startup docs before acting.

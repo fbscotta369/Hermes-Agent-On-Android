@@ -74,3 +74,33 @@ and push to `main`.
 
 The repository has no Python code, CI/CD, or automated tests. All validation
 is manual via `bash -n` syntax checks and on-device testing with Termux.
+
+## Related Records
+
+- AUDIT-001 — A2A system installation (updated)
+- PTI-001 — CI/CD Pipeline (IDEA)
+- PTI-002 — a2a-check Validation Script (IDEA)
+- PTI-003 — Pre-commit Secret Scanning (IDEA)
+
+### Next action for next agent
+
+```bash
+cd /home/fb/Downloads/Projects/Git/Hermes-Agent-On-Android
+./scripts/agent-start
+```
+
+Then read:
+
+`AGENTS.md` → `A2A-WIP.md` → `A2A-How2.md` → relevant `A2A-PTI.md` item(s).
+
+Continue from the current documented state. Do not restart completed work.
+
+If a PTI is active, reference its exact ID here.
+
+Then implement the first READY or IN_PROGRESS PTI item.
+
+Currently all PTIs are IDEA, so the next agent should either:
+
+1. Start implementing PTI-001 (CI/CD Pipeline)
+2. Prioritize the highest value PTI based on project needs
+3. Leave the backlog unchanged and continue with existing project work
