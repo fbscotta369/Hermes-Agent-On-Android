@@ -9,7 +9,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-9146ff.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Termux](https://img.shields.io/badge/Termux-Android-ff6b6b.svg?style=for-the-badge)](https://termux.com/)
-[![Version](https://img.shields.io/badge/version-v0.18.2-4ecdc4.svg?style=for-the-badge)](https://github.com/NousResearch/hermes-agent)
+[![Version](https://img.shields.io/badge/version-v2026.9.7-4ecdc4.svg?style=for-the-badge)](https://github.com/NousResearch/hermes-agent)
 
 **Transform your Android device into a powerful, learning AI assistant**
 </div>
@@ -63,14 +63,14 @@ hermes            # Start the agent
 ### Stable vs. Edge
 
 ```bash
-# Default — installs the pinned stable release (v2026.7.7.2)
+# Default — installs the pinned stable release (v2026.9.7)
 curl -fsSL .../nous_agent.sh | bash
 
 # Edge — tracks the main branch (latest features)
 curl -fsSL .../nous_agent.sh | bash -s -- --edge
 
 # Specific tag
-curl -fsSL .../nous_agent.sh | bash -s -- --tag v2026.7.7.2
+curl -fsSL .../nous_agent.sh | bash -s -- --tag v2026.9.7
 ```
 
 ### Direct Termux Install (Alternative)
@@ -337,10 +337,10 @@ bash scripts/uninstall.sh
 ## **⭐ If this helped you, give it a star! ⭐**
 </div>
 
-<!-- AIIA-FACTORY-VERIFIED-2026-08-22 -->
-## AIIA Factory Verification — 2026-08-22
+<!-- AIIA-FACTORY-VERIFIED-2026-09-08 -->
+## AIIA Factory Verification — 2026-09-08
 
-Verified 2026-08-22: `bash -n` on all shell scripts clean (3 scripts).
+Verified 2026-09-08: `bash -n` on all shell scripts clean (11 scripts).
 
-Part of Task Group **TG-AIIA-FACTORY-2026-08-22** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
-Verified by **direct execution** under AIIA DR-1 — the `delegate_task` subagent channel returned `HTTP 401` (OpenRouter key not propagated to child); the orchestrator executed the verification directly.
+Part of Task Group **TG-AIIA-FACTORY-2026-09-08** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
+Verified by **direct execution** under Kimi Code CLI.

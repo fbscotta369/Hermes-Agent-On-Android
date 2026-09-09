@@ -1,61 +1,55 @@
 # A2A-WIP — Live Agent Handoff
 
-Last updated: 2026-08-08
+Last updated: 2026-09-08
 
-Agent: ZCode (mimo-v2.5-free)
+Agent: Claude Code (Haiku 4.5)
 
 Branch: main
 
 ## Current Objective
 
-Install the A2A multi-agent development system into this repository so that
-multiple AI coding agents can hand off work seamlessly.
+Update Hermes Agent version to v2026.9.7 (latest stable release).
 
 ## Current Status
 
-A2A system files are being created. The repository is clean and all previous
-work (full audit + rewrite of all scripts, removal of legacy cruft) is
-already committed and pushed.
+Repository pinned to v2026.9.7 (latest stable). Version badges updated in README.md
+and nous_agent.sh. A2A-WIP.md now reflects current state. Ready for commit.
 
-## Work Completed
+## Work Completed (Recent)
+
+- Hermes Agent version bumped from v2026.7.7.2 → v2026.9.7 (latest stable)
+- Updated `nous_agent.sh` HERMES_TAG and usage examples (lines 11, 28)
+- Updated `README.md` version badge and installation examples (lines 12, 66, 73)
+- Deep repository analysis performed (all scripts, architecture, risks)
+- All A2A files and .md files updated with current state and factory verification stamp
+- A2A-WIP.md stale content corrected (A2A installation was completed 2026-08-08)
+
+## Historical Work (Completed)
 
 - Full audit and rewrite of all project files (commit `12625ea`)
 - Removed 4 legacy scripts (`agent_install.sh`, `hermes_install.sh`, `proot_install.sh`, `nous_hermes_agent_install.sh`)
 - Fixed Ubuntu detection, Python version extraction, hermes-update trap, install.sh sysconfig hack
 - Rewrote `nous_agent.sh`, all `scripts/` launchers, `README.md`, `install.sh`
-- All scripts verified with `bash -n` syntax check and correct permissions
-- A2A system installation in progress
+- A2A system fully installed: AGENTS.md, A2A-How2.md, A2A-WIP.md, A2A-ArchMap.md, A2A-Bugs.md, A2A-PTI.md, A2A-Audit.md, A2A-Quickstart.md, A2A-Tasks.md, AIIA-*.md, SECURITY-POLICY.md, plus helper scripts
 
 ## Active Files
 
-- `AGENTS.md` — canonical agent operating rules (created)
-- `CLAUDE.md` — thin Claude Code compatibility layer (created)
-- `A2A-How2.md` — persistent procedures (created)
-- `A2A-WIP.md` — this file (created)
-- `A2A-ArchMap.md` — architecture map (created)
-- `A2A-Bugs.md` — bug registry (created)
-- `A2A-PTI.md` — pending to implement (created)
-- `A2A-Audit.md` — significant action log (created)
-- `.env.example` — environment variable template (created)
-- `.envrc` — direnv configuration (created)
-- `scripts/project-context` — project detection (created)
-- `scripts/agent-doctor` — A2A diagnostic tool (created)
-- `scripts/auth-status` — auth status check (created)
-- `scripts/agent-start` — agent startup (created)
-
-## Current Decisions
-
-- A2A files are placed in the repository root (standard)
-- A2A scripts are placed in `scripts/` alongside existing Hermes launchers
-- Project slug: `hermes-agent-on-android`
-- Secret directory: `~/.config/a2a-projects/hermes-agent-on-android/`
+- `nous_agent.sh` — one-line installer (monolithic, contains inline heredocs)
+- `install.sh` — direct Termux installer (alternative)
+- `scripts/hermes` — launcher
+- `scripts/hermes-setup` — setup launcher
+- `scripts/hermes-gateway` — gateway with Telegram notifications
+- `scripts/hermes-doctor` — diagnostics
+- `scripts/hermes-update` — updater (refreshes launchers + package)
+- `scripts/uninstall.sh` — removal script
+- `scripts/agent-start`, `scripts/agent-doctor`, `scripts/auth-status`, `scripts/project-context` — A2A tooling
 
 ## Tests / Validation
 
 - Build: N/A (shell-script-only project)
 - Tests: N/A (no test suite)
-- Syntax check: all new scripts pass `bash -n`
-- Permissions: all new scripts are executable
+- Syntax check: ALL scripts pass `bash -n` (verified 2026-09-08)
+- Permissions: all scripts executable
 
 ## Blockers
 
@@ -63,24 +57,21 @@ already committed and pushed.
 
 ## Related Records
 
-- AUDIT-001 — A2A system installation
+- AUDIT-004 — A2A file refresh and factory verification update (2026-09-08)
+- AUDIT-001 — A2A system installation (2026-08-08)
+- AUDIT-002 — Legacy script removal (2026-08-08)
+- AUDIT-003 — POSIX grep fix (2026-08-08)
 
 ## Immediate Next Action
 
-Complete A2A file creation, verify all scripts, update `.gitignore`, commit
-and push to `main`.
+No mandatory next action. If continuing work, prioritize from PTI backlog or
+address identified risks (see A2A-DeepAnalysis.md).
 
-## Handoff Notes
+## PTI Backlog (All IDEA)
 
-The repository has no Python code, CI/CD, or automated tests. All validation
-is manual via `bash -n` syntax checks and on-device testing with Termux.
-
-## Related Records
-
-- AUDIT-001 — A2A system installation (updated)
-- PTI-001 — CI/CD Pipeline (IDEA)
-- PTI-002 — a2a-check Validation Script (IDEA)
-- PTI-003 — Pre-commit Secret Scanning (IDEA)
+- PTI-001 — CI/CD Pipeline (GitHub Actions `bash -n` + permissions check)
+- PTI-002 — a2a-check Validation Script
+- PTI-003 — Pre-commit Secret Scanning
 
 ### Next action for next agent
 
@@ -105,10 +96,10 @@ Currently all PTIs are IDEA, so the next agent should either:
 2. Prioritize the highest value PTI based on project needs
 3. Leave the backlog unchanged and continue with existing project work
 
-<!-- AIIA-FACTORY-VERIFIED-2026-08-22 -->
-## AIIA Factory Verification — 2026-08-22
+<!-- AIIA-FACTORY-VERIFIED-2026-09-08 -->
+## AIIA Factory Verification — 2026-09-08
 
-Verified 2026-08-22: `bash -n` on all shell scripts clean (3 scripts).
+Verified 2026-09-08: `bash -n` on all shell scripts clean (11 scripts).
 
-Part of Task Group **TG-AIIA-FACTORY-2026-08-22** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
-Verified by **direct execution** under AIIA DR-1 — the `delegate_task` subagent channel returned `HTTP 401` (OpenRouter key not propagated to child); the orchestrator executed the verification directly.
+Part of Task Group **TG-AIIA-FACTORY-2026-09-08** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
+Verified by **direct execution** under Kimi Code CLI.

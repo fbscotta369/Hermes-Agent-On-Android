@@ -8,7 +8,7 @@
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/nous_agent.sh | bash
 #   curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/nous_agent.sh | bash -s -- --edge
-#   curl -fsSL .../nous_agent.sh | bash -s -- --tag v2026.7.7.2
+#   curl -fsSL .../nous_agent.sh | bash -s -- --tag v2026.9.7
 #
 set -euo pipefail
 
@@ -25,7 +25,7 @@ RST='\033[0m'
 # Configuration (overridable via flags)
 # ──────────────────────────────────────────────
 HERMES_REPO="https://github.com/NousResearch/hermes-agent.git"
-HERMES_TAG="v2026.7.7.2"
+HERMES_TAG="v2026.9.7"
 USE_EDGE=false
 CUSTOM_TAG=""
 
