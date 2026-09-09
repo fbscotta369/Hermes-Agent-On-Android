@@ -169,10 +169,10 @@ Priority: P1 / P2 / P3 / P4
 - AUDIT-...
 ```
 
-<!-- AIIA-FACTORY-VERIFIED-2026-08-22 -->
-## AIIA Factory Verification — 2026-08-22
+<!-- AIIA-FACTORY-VERIFIED-2026-09-08 -->
+## AIIA Factory Verification — 2026-09-08
 
-Verified 2026-08-22: `bash -n` on all shell scripts clean (3 scripts).
+Verified 2026-09-08: `bash -n` on all shell scripts clean (11 scripts).
 
-Part of Task Group **TG-AIIA-FACTORY-2026-08-22** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
-Verified by **direct execution** under AIIA DR-1 — the `delegate_task` subagent channel returned `HTTP 401` (OpenRouter key not propagated to child); the orchestrator executed the verification directly.
+Part of Task Group **TG-AIIA-FACTORY-2026-09-08** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
+Verified by **direct execution** under Kimi Code CLI.

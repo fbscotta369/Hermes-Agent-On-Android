@@ -339,7 +339,7 @@ reconstruct the previous session.
 - Then follow this repo's local startup docs before acting.
 
 <!-- AIIA-FACTORY-PERIODIC-UPDATE -->
-## AIIA Factory Periodic Update (injected 2026-08-22)
+## AIIA Factory Periodic Update (injected 2026-09-08)
 
 When resuming this repo as part of an AIIA Factory batch pass, in addition to stamping
 `A2A-*.md` / `README.md`, the next AI agent MUST also update the machine-readable state:

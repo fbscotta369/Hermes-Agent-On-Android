@@ -117,12 +117,44 @@ Related:
 Notes: ...
 ```
 
+## AUDIT-004
+
+Date: 2026-09-08
+
+Agent: Kimi Code CLI
+
+Category: Configuration
+
+Action: Refreshed all A2A files, .md files, and machine-readable factory state.
+
+Result: Updated A2A-WIP.md (corrected stale in-progress status), updated factory
+verification stamps on AGENTS.md, A2A-How2.md, A2A-ArchMap.md, A2A-Bugs.md,
+A2A-PTI.md, A2A-Audit.md, README.md. Filled stub A2A files with meaningful
+content. Updated `.aiia/factory.manifest.json` and created new log entry.
+All 11 shell scripts verified with `bash -n`.
+
+Commit: pending
+
+Environment: local development (linux x64)
+
+Related:
+
+- AUDIT-001
+- PTI-001
+- PTI-002
+- PTI-003
+
+Notes: Deep analysis performed prior to update. No code changes — documentation
+and coordination files only.
+
+---
+
 Git remains the authoritative source for normal source-code history.
 
-<!-- AIIA-FACTORY-VERIFIED-2026-08-22 -->
-## AIIA Factory Verification — 2026-08-22
+<!-- AIIA-FACTORY-VERIFIED-2026-09-08 -->
+## AIIA Factory Verification — 2026-09-08
 
-Verified 2026-08-22: `bash -n` on all shell scripts clean (3 scripts).
+Verified 2026-09-08: `bash -n` on all shell scripts clean (11 scripts).
 
-Part of Task Group **TG-AIIA-FACTORY-2026-08-22** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
-Verified by **direct execution** under AIIA DR-1 — the `delegate_task` subagent channel returned `HTTP 401` (OpenRouter key not propagated to child); the orchestrator executed the verification directly.
+Part of Task Group **TG-AIIA-FACTORY-2026-09-08** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
+Verified by **direct execution** under Kimi Code CLI.
