@@ -27,7 +27,7 @@ Remote:
 - **Repository:** `fbscotta369/Hermes-Agent-On-Android`
 - **Primary installer:** `nous_agent.sh` (one-liner via `curl | bash`)
 - **Alternative installer:** `install.sh` (direct Termux, no proot-distro)
-- **Hermes Agent version:** v0.18.2 (pinned tag: `v2026.7.7.2`)
+- **Hermes Agent version:** v2026.9.7 (latest stable, pinned in `nous_agent.sh`)
 - **Python requirement:** >=3.11, <3.14 (Ubuntu 25.04 ships 3.14 which is incompatible)
 - **Package manager:** `uv` (Astral) manages Python versions inside Ubuntu
 
@@ -124,13 +124,13 @@ Only persistent instructions belong here.
 
 Temporary work belongs in `A2A-WIP.md`.
 
-<!-- AIIA-FACTORY-VERIFIED-2026-08-22 -->
-## AIIA Factory Verification — 2026-08-22
+<!-- AIIA-FACTORY-VERIFIED-2026-09-08 -->
+## AIIA Factory Verification — 2026-09-08
 
-Verified 2026-08-22: `bash -n` on all shell scripts clean (3 scripts).
+Verified 2026-09-08: `bash -n` on all shell scripts clean (11 scripts).
 
-Part of Task Group **TG-AIIA-FACTORY-2026-08-22** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
-Verified by **direct execution** under AIIA DR-1 — the `delegate_task` subagent channel returned `HTTP 401` (OpenRouter key not propagated to child); the orchestrator executed the verification directly.
+Part of Task Group **TG-AIIA-FACTORY-2026-09-08** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
+Verified by **direct execution** under Kimi Code CLI.
 
 <!-- AIIA-FACTORY-PERIODIC-UPDATE -->
 ## AIIA Factory Periodic Update (injected 2026-08-22)
