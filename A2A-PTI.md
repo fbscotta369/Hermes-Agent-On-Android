@@ -1,13 +1,31 @@
 # A2A-PTI — Pending To Implement
 
-Allowed statuses:
+**Last Updated:** 2026-09-11
 
-- IDEA
-- READY
-- IN_PROGRESS
-- BLOCKED
-- DONE
-- CANCELLED
+**Summary:** 3 items in IDEA state, ready for next agent to prioritize and implement.
+
+**Recommendation for next agent:** Start with **PTI-001** (CI/CD) for production stability.
+
+---
+
+## Status Overview
+
+| ID | Title | Status | Priority | Effort | Value |
+|---|---|---|---|---|---|
+| PTI-001 | CI/CD Pipeline | IDEA | P3 | Medium | High (production safety) |
+| PTI-002 | a2a-check Script | IDEA | P4 | Low | Medium (process enforcement) |
+| PTI-003 | Pre-commit Secret Scanning | IDEA | P3 | Low | High (security) |
+
+---
+
+## Allowed Statuses
+
+- IDEA — Concept, not yet prioritized
+- READY — Prioritized, specifications clear, ready to implement
+- IN_PROGRESS — Currently being worked on
+- BLOCKED — Waiting on external dependency
+- DONE — Completed
+- CANCELLED — No longer needed
 
 ---
 
@@ -169,10 +187,15 @@ Priority: P1 / P2 / P3 / P4
 - AUDIT-...
 ```
 
-<!-- AIIA-FACTORY-VERIFIED-2026-09-08 -->
-## AIIA Factory Verification — 2026-09-08
+<!-- AIIA-FACTORY-VERIFIED-2026-09-11 -->
+## AIIA Factory Verification — 2026-09-11
 
-Verified 2026-09-08: `bash -n` on all shell scripts clean (11 scripts).
+**Status:** ✅ VERIFIED & HANDOFF READY
+
+- Original verification 2026-09-08: `bash -n` on all shell scripts clean (11 scripts)
+- Handoff documentation completed 2026-09-11: HANDOFF.md created
+- All PTI items clearly defined and prioritized
+- Ready for next agent to implement
 
 Part of Task Group **TG-AIIA-FACTORY-2026-09-08** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
-Verified by **direct execution** under Kimi Code CLI.
+Verified by **Claude Code (Haiku 4.5)** through 2026-09-11.

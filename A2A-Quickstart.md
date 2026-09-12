@@ -65,8 +65,17 @@ This is a **packaging/installer project**. No local development environment need
 
 ## Related Files
 
+- `HANDOFF.md` — **START HERE** Complete project state & next steps
 - `A2A-How2.md` — Persistent procedures (setup, testing, deployment)
 - `A2A-Technical.md` — Stack, patterns, environment variables
 - `A2A-Tasks.md` — Task registry (completed + pending)
 - `A2A-Bugs.md` — Bug registry
 - `A2A-Fixes.md` — Fixes applied
+- `A2A-WIP.md` — Current work state & handoff
+
+## Latest Release (2026-09-11)
+
+✅ **v2026.9.7 shipped** — Users get latest version out of the box
+✅ **A2A documentation complete** — 12 tasks (T1-T12) documented
+✅ **Production ready** — No blockers, all scripts passing syntax checks
+✅ **Handoff ready** — HANDOFF.md prepared for next agent

@@ -55,8 +55,11 @@ fi
 
 ## Canonical Docs
 
+- **Handoff:** `HANDOFF.md` ← **START HERE** for next agent
 - Architecture: `A2A-ArchMap.md`
 - Operations: `A2A-How2.md`
-- Tasks: `A2A-Tasks.md`
+- Tasks: `A2A-Tasks.md` (12 completed: T1-T12)
 - Bugs: `A2A-Bugs.md`
 - Fixes: `A2A-Fixes.md`
+- Pending Implementation: `A2A-PTI.md`
+- Current Work: `A2A-WIP.md`

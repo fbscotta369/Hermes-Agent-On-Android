@@ -124,13 +124,13 @@ Only persistent instructions belong here.
 
 Temporary work belongs in `A2A-WIP.md`.
 
-<!-- AIIA-FACTORY-VERIFIED-2026-09-08 -->
-## AIIA Factory Verification — 2026-09-08
+<!-- AIIA-FACTORY-VERIFIED-2026-09-11 -->
+## AIIA Factory Verification — 2026-09-11
 
-Verified 2026-09-08: `bash -n` on all shell scripts clean (11 scripts).
+Verified through 2026-09-11: `bash -n` on all shell scripts clean (11 scripts).
 
 Part of Task Group **TG-AIIA-FACTORY-2026-09-08** (control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`).
-Verified by **direct execution** under Kimi Code CLI.
+Verified by **direct execution** under Kimi Code CLI, extended through 2026-09-11 by Claude Code (Haiku 4.5).
 
 <!-- AIIA-FACTORY-PERIODIC-UPDATE -->
 ## AIIA Factory Periodic Update (injected 2026-08-22)
