@@ -1,5 +1,7 @@
 # Multi-Agent A2A Development Rules
 
+**📌 HANDOFF NOTICE:** Before reading this file, start with [HANDOFF.md](HANDOFF.md) for complete project context (2026-09-11).
+
 This repository is developed by multiple interchangeable AI coding agents.
 
 Agents may be switched at any time because of:

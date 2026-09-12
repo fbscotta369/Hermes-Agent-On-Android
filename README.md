@@ -12,6 +12,9 @@
 [![Version](https://img.shields.io/badge/version-v2026.9.7-4ecdc4.svg?style=for-the-badge)](https://github.com/NousResearch/hermes-agent)
 
 **Transform your Android device into a powerful, learning AI assistant**
+
+> 🤖 **For AI Agents/Developers:** See [HANDOFF.md](HANDOFF.md) for project context and next steps (Updated 2026-09-11)
+
 </div>
 
 ## ✨ What is Hermes Agent?
