@@ -1,16 +1,15 @@
 # STATE
-Updated: 2026-10-15 05:10 -03 by OpenCode @ T3SL4X-40RU5
+Updated: 2026-10-15 05:20 -03 by OpenCode @ T3SL4X-40RU5
 Branch: main | Tree: clean
 
 ## Objective
-PTI-001 implemented: GitHub Actions CI/CD pipeline added (.github/workflows/ci.yml). Pipeline runs syntax checks, validates permissions, scans for secrets, and verifies A2A handoff freshness.
+A2A Kit migration complete. All 25 legacy A2A-*.md files migrated to new a2a/ structure and legacy folder removed. Repository now uses unified A2A handoff protocol with a2a.sh tooling. PTI-001 (CI/CD) reverted per user request.
 
 ## In progress
 - ✅ A2A Kit migration complete — new structure installed and populated
 - ✅ All 13 shell scripts verified with `bash -n`
 - ✅ Git hooks active: pre-push guard, Claude SessionStart/Stop hooks
 - ✅ Legacy files removed (a2a/legacy/ deleted)
-- ✅ PTI-001: CI/CD Pipeline implemented and pushed
 
 ## Next steps
 1. Implement PTI-003: Pre-commit Secret Scanning
@@ -18,7 +17,7 @@ PTI-001 implemented: GitHub Actions CI/CD pipeline added (.github/workflows/ci.y
 3. Monitor user feedback from v2026.9.7 release
 
 ## Blockers / questions for FB
-- None — PTI-001 complete, ready for next PTI
+- None — migration complete, PTI backlog available
 
 ## Gotchas
 - AGENTS.md is 8215 chars (slightly over 8k target) — acceptable for now
@@ -35,4 +34,3 @@ PTI-001 implemented: GitHub Actions CI/CD pipeline added (.github/workflows/ci.y
 - `./scripts/a2a.sh doctor` → all OK
 - `./scripts/a2a.sh check` → handoff current
 - `git push` → works (pre-push guard passes)
-- GitHub Actions CI → passes on push/PR
