@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Git pre-commit hook: Secret scanning
+# Blocks commits containing potential secrets (API keys, tokens, private keys)
+
+set -euo pipefail
+
+# Patterns that indicate potential secrets
+patterns=(
+  "sk-[a-zA-Z0-9]{32,}"           # OpenAI API keys
+  "sk-ant-[a-zA-Z0-9_-]{95,}"     # Anthropic API keys
+  "AIza[0-9A-Za-z\-_]{35}"        # Google API keys
+  "gh[pousr]_[a-zA-Z0-9]{36,}"    # GitHub tokens
+  "xox[baprs]-[a-zA-Z0-9-]{10,}"  # Slack tokens
+  "ghp_[a-zA-Z0-9]{36}"           # GitHub PAT (classic)
+  "github_pat_[a-zA-Z0-9_]{82}"   # GitHub PAT (fine-grained)
+  "AKIA[0-9A-Z]{16}"              # AWS access key ID
+  "-----BEGIN (RSA|EC|DSA|OPENSSH) PRIVATE KEY-----"  # Private keys
+)
+
+# Files to scan (staged files only)
+mapfile -t staged_files < <(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -v '^$' || true)
+
+if [[ ${#staged_files[@]} -eq 0 ]]; then
+  exit 0
+fi
+
+found=0
+for pattern in "${patterns[@]}"; do
+  for f in "${staged_files[@]}"; do
+    if [[ -f "$f" ]] && grep -q -E "$pattern" "$f" 2>/dev/null; then
+      echo "❌ Potential secret detected in $f (pattern: $pattern)"
+      grep -n -E "$pattern" "$f" | head -3 | sed 's/^/   /'
+      found=1
+    fi
+  done
+done
+
+if [[ $found -eq 1 ]]; then
+  echo ""
+  echo "Commit blocked. Remove secrets from staged files before committing."
+  echo "If this is a false positive, use: git commit --no-verify"
+  exit 1
+fi
+
+exit 0
