@@ -9,3 +9,4 @@ Append-only, newest at the bottom. One line per session or handoff:
 - 2026-10-15 05:30 -03 | OpenCode | T3SL4X-40RU5 | main | implemented PTI-002 a2a-check validation script | c08ccd0
 - 2026-10-15 05:40 -03 | OpenCode | T3SL4X-40RU5 | main | implemented PTI-003 pre-commit secret scanning (scripts/install-hooks, .githooks/pre-commit) | 5d6aa5b
 - 2026-10-15 05:45 -03 | OpenCode | T3SL4X-40RU5 | main | tracked .githooks/pre-commit in git | b6bf817
+- 2026-10-15 06:00 -03 | OpenCode | T3SL4X-40RU5 | main | updated AIIA-Labs logo, added https://aiia-labs.com link to README/installer banners | (this commit)

@@ -1,9 +1,9 @@
 # STATE
-Updated: 2026-10-15 05:45 -03 by OpenCode @ T3SL4X-40RU5
+Updated: 2026-10-15 06:00 -03 by OpenCode @ T3SL4X-40RU5
 Branch: main | Tree: clean
 
 ## Objective
-PTI-003 implemented: Pre-commit secret scanning hook installed via scripts/install-hooks. Blocks commits containing API keys, tokens, and private keys. Uses .githooks/pre-commit with grep-based pattern matching. Hook tracked in git.
+Updated AIIA-Labs logo and added website link (https://aiia-labs.com) to README.md, install.sh, and nous_agent.sh banners.
 
 ## In progress
 - ✅ A2A Kit migration complete — new structure installed and populated
@@ -12,6 +12,7 @@ PTI-003 implemented: Pre-commit secret scanning hook installed via scripts/insta
 - ✅ Legacy files removed (a2a/legacy/ deleted)
 - ✅ PTI-002: a2a-check Validation Script implemented
 - ✅ PTI-003: Pre-commit Secret Scanning implemented and tracked
+- ✅ AIIA-Labs logo updated + website link added
 
 ## Next steps
 1. Monitor user feedback from v2026.9.7 release
