@@ -38,3 +38,4 @@ secrets/
 
 # direnv
 .direnv/
+.mimosa/
