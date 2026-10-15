@@ -353,3 +353,6 @@ When resuming this repo as part of an AIIA Factory batch pass, in addition to st
 3. Do NOT force-push. If `git push` is rejected non-fast-forward, run `git fetch origin`
    then `git rebase origin/main` (or reset --hard to origin/main for doc-only stamps) and re-push.
 4. See the control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`.
+
+## Handoff protocol (A2A)
+Read `a2a/STATE.md` first. After each completed task: update a2a/STATE.md and a2a/LOG.md, commit, push.

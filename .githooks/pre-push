@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# a2a pre-push guard: blocks pushes when code changed after the last a2a/STATE.md update
+exec "$(git rev-parse --show-toplevel)/scripts/a2a.sh" check prepush
