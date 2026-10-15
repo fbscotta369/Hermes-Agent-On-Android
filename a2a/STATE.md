@@ -1,36 +1,36 @@
 # STATE
-Updated: 2026-10-15 04:45 -03 by OpenCode @ T3SL4X-40RU5
-Branch: main | Tree: clean (a2a/legacy/ untracked)
+Updated: 2026-10-15 04:50 -03 by OpenCode @ T3SL4X-40RU5
+Branch: main | Tree: clean
 
 ## Objective
-Complete migration from legacy A2A-*.md files to new A2A Kit structure (a2a/ folder with a2a.sh tooling). All 25 legacy files migrated into TECHNICAL.md, WHAT.md, TASKS.md, ISSUES.md, DECISIONS.md. Legacy files preserved in a2a/legacy/ for reference, to be deleted after verification.
+A2A Kit migration complete. All 25 legacy A2A-*.md files migrated to new a2a/ structure and legacy folder removed. Repository now uses unified A2A handoff protocol with a2a.sh tooling.
 
 ## In progress
-- A2A Kit migration complete — new structure installed and populated
-- All 11 shell scripts verified with `bash -n`
-- Git hooks active: pre-push guard, Claude SessionStart/Stop hooks
+- ✅ A2A Kit migration complete — new structure installed and populated
+- ✅ All 13 shell scripts verified with `bash -n`
+- ✅ Git hooks active: pre-push guard, Claude SessionStart/Stop hooks
+- ✅ Legacy files removed (a2a/legacy/ deleted)
 
 ## Next steps
-1. Delete a2a/legacy/ after verifying all content migrated
-2. Implement PTI-001: CI/CD Pipeline (GitHub Actions with `bash -n` + permissions + secrets check)
-3. Implement PTI-003: Pre-commit Secret Scanning
-4. Implement PTI-002: a2a-check Validation Script
-5. Push to origin/main
+1. Implement PTI-001: CI/CD Pipeline (GitHub Actions with `bash -n` + permissions + secrets check)
+2. Implement PTI-003: Pre-commit Secret Scanning
+3. Implement PTI-002: a2a-check Validation Script
+4. Monitor user feedback from v2026.9.7 release
 
 ## Blockers / questions for FB
 - None — migration complete, ready for PTI implementation
 
 ## Gotchas
-- a2a/legacy/ folder exists and contains 25 old A2A-*.md files — delete after confirming migration
-- AGENTS.md was updated by a2a init with A2A section appended
-- CLAUDE.md now points to AGENTS.md with @AGENTS.md
+- AGENTS.md is 8215 chars (slightly over 8k target) — acceptable for now
+- CLAUDE.md points to AGENTS.md with @AGENTS.md
 - Pre-push hook active in this clone (core.hooksPath=.githooks)
 - .claude/settings.json has SessionStart + Stop hooks calling scripts/a2a.sh
+- Hermes SOUL.md rebuilt with latest GLOBAL.md via `a2a soul`
 
 ## Verify
 - `bash -n nous_agent.sh` → exit 0
 - `bash -n install.sh` → exit 0
-- `bash -n scripts/*` → exit 0 (all scripts)
+- `bash -n scripts/*` → exit 0 (all 13 scripts)
 - `hermes-doctor` → all 6 checks PASS, 0 FAIL
 - `./scripts/a2a.sh doctor` → all OK
 - `./scripts/a2a.sh check` → handoff current
