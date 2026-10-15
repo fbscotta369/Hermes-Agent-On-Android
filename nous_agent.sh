@@ -78,6 +78,7 @@ echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━�
 echo -e "${GRN}         ☤  HERMES AGENT FOR ANDROID  ☤${RST}"
 echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${GRN}                AIIA-Labs"
+echo -e "${CYN}                https://aiia-labs.com"
 echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo ""
 
