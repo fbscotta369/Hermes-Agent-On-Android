@@ -1,0 +1,166 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find all shell scripts
+        id: scripts
+        run: |
+          # Find all executable files that are shell scripts (shebang or extension)
+          mapfile -t files < <(find . -type f -executable \
+            ! -path './.git/*' \
+            ! -path './.github/*' \
+            ! -path './.mimosa/*' \
+            | while read -r f; do
+                if head -1 "$f" | grep -q '^#!.*\(bash\|sh\)'; then
+                  echo "$f"
+                fi
+              done | sort)
+          echo "scripts=${files[*]}" >> "$GITHUB_OUTPUT"
+          printf 'Found scripts:\n'
+          printf '  %s\n' "${files[@]}"
+
+      - name: Syntax check (bash -n)
+        run: |
+          for f in ${{ steps.scripts.outputs.scripts }}; do
+            echo "Checking $f..."
+            bash -n "$f" || exit 1
+          done
+          echo "All scripts pass bash -n"
+
+      - name: Check executable permissions on launchers
+        run: |
+          launchers=(
+            "scripts/hermes"
+            "scripts/hermes-setup"
+            "scripts/hermes-gateway"
+            "scripts/hermes-doctor"
+            "scripts/hermes-update"
+            "scripts/uninstall.sh"
+            "scripts/a2a.sh"
+            "scripts/agent-start"
+            "scripts/agent-doctor"
+            "scripts/auth-status"
+            "scripts/project-context"
+            "install.sh"
+            "nous_agent.sh"
+          )
+          for f in "${launchers[@]}"; do
+            if [ -f "$f" ]; then
+              if [ ! -x "$f" ]; then
+                echo "ERROR: $f is not executable"
+                exit 1
+              fi
+              echo "OK: $f is executable"
+            else
+              echo "WARN: $f not found (may be generated at install time)"
+            fi
+          done
+
+      - name: Check for secrets (grep patterns)
+        run: |
+          # Patterns that indicate potential secrets
+          patterns=(
+            "sk-[a-zA-Z0-9]{32,}"           # OpenAI API keys
+            "sk-ant-[a-zA-Z0-9_-]{95,}"     # Anthropic API keys
+            "AIza[0-9A-Za-z\\-_]{35}"       # Google API keys
+            "gh[pousr]_[a-zA-Z0-9]{36,}"    # GitHub tokens
+            "xox[baprs]-[a-zA-Z0-9-]{10,}"  # Slack tokens
+            "ghp_[a-zA-Z0-9]{36}"           # GitHub PAT (classic)
+            "github_pat_[a-zA-Z0-9_]{82}"   # GitHub PAT (fine-grained)
+            "AKIA[0-9A-Z]{16}"              # AWS access key ID
+            "-----BEGIN (RSA|EC|DSA|OPENSSH) PRIVATE KEY-----"  # Private keys
+          )
+
+          # Files to scan (exclude .git, node_modules, etc.)
+          mapfile -t scan_files < <(find . -type f \
+            ! -path './.git/*' \
+            ! -path './.github/*' \
+            ! -path './.mimosa/*' \
+            ! -name '*.bak.*' \
+            ! -name '*.log' \
+            | sort)
+
+          found=0
+          for pattern in "${patterns[@]}"; do
+            matches=$(grep -r -E "$pattern" "${scan_files[@]}" 2>/dev/null || true)
+            if [ -n "$matches" ]; then
+              echo "⚠️  Potential secret found (pattern: $pattern):"
+              echo "$matches"
+              found=1
+            fi
+          done
+
+          if [ "$found" -eq 1 ]; then
+            echo "::error::Potential secrets detected in repository. Review and remove before committing."
+            exit 1
+          else
+            echo "No secrets detected."
+          fi
+
+      - name: Shellcheck (if available)
+        run: |
+          if command -v shellcheck >/dev/null; then
+            for f in ${{ steps.scripts.outputs.scripts }}; do
+              echo "Shellchecking $f..."
+              shellcheck -x "$f" || true  # warn only, don't fail
+            done
+          else
+            echo "shellcheck not installed, skipping"
+          fi
+
+  verify-a2a:
+    name: Verify A2A Handoff
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed for git log checks
+
+      - name: Check a2a/STATE.md exists
+        run: |
+          if [ ! -f "a2a/STATE.md" ]; then
+            echo "::error::a2a/STATE.md not found"
+            exit 1
+          fi
+          echo "a2a/STATE.md exists"
+
+      - name: Check a2a/STATE.md is committed
+        run: |
+          if ! git ls-files --error-unmatch a2a/STATE.md >/dev/null 2>&1; then
+            echo "::error::a2a/STATE.md is not tracked by git (gitignored or never committed)"
+            exit 1
+          fi
+          echo "a2a/STATE.md is tracked"
+
+      - name: Verify handoff freshness (no code changes after STATE.md update)
+        run: |
+          last_state_commit=$(git log -1 --format=%H -- a2a/STATE.md 2>/dev/null || true)
+          if [ -z "$last_state_commit" ]; then
+            echo "::error::a2a/STATE.md has no commit history"
+            exit 1
+          fi
+
+          # Count commits that changed non-a2a files since last STATE.md update
+          changed=$(git log --format=%H "$last_state_commit"..HEAD -- . ":(exclude)a2a/" 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$changed" -gt 0 ]; then
+            echo "::warning::$changed commit(s) changed code after a2a/STATE.md was last updated"
+            echo "Consider updating a2a/STATE.md and a2a/LOG.md"
+          else
+            echo "Handoff is current: no code changes since last STATE.md update"
+          fi
