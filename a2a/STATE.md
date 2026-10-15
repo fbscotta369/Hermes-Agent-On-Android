@@ -1,23 +1,23 @@
 # STATE
-Updated: 2026-10-15 05:20 -03 by OpenCode @ T3SL4X-40RU5
+Updated: 2026-10-15 05:30 -03 by OpenCode @ T3SL4X-40RU5
 Branch: main | Tree: clean
 
 ## Objective
-A2A Kit migration complete. All 25 legacy A2A-*.md files migrated to new a2a/ structure and legacy folder removed. Repository now uses unified A2A handoff protocol with a2a.sh tooling. PTI-001 (CI/CD) reverted per user request.
+PTI-002 implemented: a2a-check validation script created at scripts/a2a-check. Validates A2A protocol compliance including required files, duplicate ID definitions, STATE.md freshness, secrets, git tracking, and handoff freshness.
 
 ## In progress
 - ✅ A2A Kit migration complete — new structure installed and populated
 - ✅ All 13 shell scripts verified with `bash -n`
 - ✅ Git hooks active: pre-push guard, Claude SessionStart/Stop hooks
 - ✅ Legacy files removed (a2a/legacy/ deleted)
+- ✅ PTI-002: a2a-check Validation Script implemented
 
 ## Next steps
 1. Implement PTI-003: Pre-commit Secret Scanning
-2. Implement PTI-002: a2a-check Validation Script
-3. Monitor user feedback from v2026.9.7 release
+2. Monitor user feedback from v2026.9.7 release
 
 ## Blockers / questions for FB
-- None — migration complete, PTI backlog available
+- None — PTI-002 complete, ready for next PTI
 
 ## Gotchas
 - AGENTS.md is 8215 chars (slightly over 8k target) — acceptable for now
@@ -29,8 +29,9 @@ A2A Kit migration complete. All 25 legacy A2A-*.md files migrated to new a2a/ st
 ## Verify
 - `bash -n nous_agent.sh` → exit 0
 - `bash -n install.sh` → exit 0
-- `bash -n scripts/*` → exit 0 (all 13 scripts)
+- `bash -n scripts/*` → exit 0 (all 14 scripts including a2a-check)
 - `hermes-doctor` → all 6 checks PASS, 0 FAIL
 - `./scripts/a2a.sh doctor` → all OK
 - `./scripts/a2a.sh check` → handoff current
+- `./scripts/a2a-check` → all checks pass
 - `git push` → works (pre-push guard passes)
