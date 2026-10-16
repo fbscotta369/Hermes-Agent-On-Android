@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Git pre-commit hook: Secret scanning
+# Git pre-commit hook: Secret scanning + shellcheck (warn only)
 # Blocks commits containing potential secrets (API keys, tokens, private keys)
 
 set -euo pipefail
@@ -24,6 +24,7 @@ if [[ ${#staged_files[@]} -eq 0 ]]; then
   exit 0
 fi
 
+# Secret scanning
 found=0
 for pattern in "${patterns[@]}"; do
   for f in "${staged_files[@]}"; do
@@ -40,6 +41,19 @@ if [[ $found -eq 1 ]]; then
   echo "Commit blocked. Remove secrets from staged files before committing."
   echo "If this is a false positive, use: git commit --no-verify"
   exit 1
+fi
+
+# Shellcheck (warn only, non-blocking)
+mapfile -t shell_files < <(printf '%s\n' "${staged_files[@]}" | grep -E '\.sh$|\.bash$' || true)
+if [[ ${#shell_files[@]} -gt 0 ]] && command -v shellcheck >/dev/null 2>&1; then
+  echo "Running shellcheck on staged shell scripts..."
+  for f in "${shell_files[@]}"; do
+    if [[ -f "$f" ]]; then
+      if ! shellcheck -x "$f" 2>&1 | grep -v "^$"; then
+        echo "⚠️  shellcheck warnings in $f (non-blocking)"
+      fi
+    fi
+  done
 fi
 
 exit 0

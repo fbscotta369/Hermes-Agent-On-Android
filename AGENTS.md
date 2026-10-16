@@ -1,358 +1,50 @@
-# Multi-Agent A2A Development Rules
-
-**📌 HANDOFF NOTICE:** Before reading this file, start with [HANDOFF.md](HANDOFF.md) for complete project context (2026-09-11).
-
-This repository is developed by multiple interchangeable AI coding agents.
-
-Agents may be switched at any time because of:
-
-- rate limits
-- context limits
-- provider availability
-- task specialization
-- tool availability
-- human preference
-
-The repository therefore uses the A2A protocol for persistent handoff.
-
----
-
-## PROJECT AUTO-DETECTION
-
-Never assume the repository name or absolute path.
-
-Determine the repository root with:
-
-    git rev-parse --show-toplevel
-
-If Git metadata is unavailable, use the current working directory.
-
-Determine the repository name from the repository root.
-
-Determine the Git remote with:
-
-    git remote get-url origin
-
-Do not hardcode project-specific paths in persistent agent instructions unless
-the project explicitly requires an absolute path.
-
----
-
-## MANDATORY STARTUP
-
-Before performing substantial work:
-
-1. Determine the repository root.
-2. Change to the repository root if necessary.
-3. Read `AGENTS.md`.
-4. Read `A2A-How2.md`.
-5. Read `A2A-WIP.md`.
-6. Read other A2A files relevant to the current task.
-7. Inspect repository state:
-
-       git status
-       git branch --show-current
-       git log -5 --oneline
-
-8. Understand the existing implementation before changing it.
-9. If authentication, APIs, databases, deployments, external services or
-   credentials may be involved, run:
-
-       ./scripts/agent-doctor
-
-10. Continue from the documented state.
-11. Do not redo work already completed by another agent.
-
----
-
-## A2A CONTINUOUS SYNCHRONIZATION — MANDATORY
-
-A2A documentation is part of the development workflow.
-
-It is not optional documentation.
-
-### `A2A-WIP.md`
-
-`A2A-WIP.md` is the live shared memory between AI agents.
-
-Update it continuously during substantial work.
-
-Update it when:
-
-- a task is started
-- an important discovery is made
-- an implementation decision is made
-- architecture relevant to the current task changes
-- files are created, removed, renamed or substantially changed
-- a bug is discovered
-- a bug is fixed
-- a blocker appears
-- a workaround is introduced
-- build/test/lint/typecheck status changes materially
-- external service configuration changes
-- a deployment occurs
-- a milestone is completed
-- the implementation plan changes
-- work is about to stop
-- another agent may take over
-
-Do not leave important project state only in conversational context.
-
-Before stopping substantial work, ensure `A2A-WIP.md` accurately represents
-the repository state and the exact recommended next action.
-
-### `A2A-How2.md`
-
-Update `A2A-How2.md` only when persistent operational knowledge changes.
-
-Examples:
-
-- setup
-- commands
-- workflows
-- tooling
-- authentication procedures
-- environment requirements
-- deployment procedures
-- testing procedures
-- development conventions
-
-Do not use `A2A-How2.md` as a session log.
-
-### `A2A-ArchMap.md`
-
-Update when persistent architecture changes.
-
-Examples:
-
-- components
-- services
-- data flows
-- provider relationships
-- infrastructure
-- major dependencies
-- ownership boundaries
-
-### `A2A-Bugs.md`
-
-Update whenever known defects change state.
-
-Examples:
-
-- discovered
-- reproduced
-- investigation updated
-- blocked
-- fixed
-- verified
-- reopened
-- closed
-
-### `A2A-PTI.md`
-
-Update whenever pending implementation work changes.
-
-Examples:
-
-- new task
-- reprioritized
-- ready
-- in progress
-- blocked
-- done
-- cancelled
-
-### `A2A-Audit.md`
-
-Record significant historical actions.
-
-Examples:
-
-- production deployments
-- schema migrations
-- security-sensitive changes
-- authentication configuration changes
-- major dependency upgrades
-- destructive operations
-- architecture decisions
-- provider changes
-
-Do not duplicate normal Git history here.
-
----
-
-## A2A ROUTING RULE
-
-Route information according to purpose:
-
-    Current active work         -> A2A-WIP.md
-    Permanent procedures        -> A2A-How2.md
-    Architecture                -> A2A-ArchMap.md
-    Known defects               -> A2A-Bugs.md
-    Future implementation work  -> A2A-PTI.md
-    Significant historical acts -> A2A-Audit.md
-
-When information belongs to another A2A file, `A2A-WIP.md` should reference
-the relevant ID instead of duplicating the full record.
-
----
-
-## IDENTIFIERS
-
-Use stable IDs:
-
-    BUG-001
-    PTI-001
-    ARCH-001
-    AUDIT-001
-
-Never reuse an ID for a different record.
-
----
-
-## CREDENTIAL POLICY
-
-Never ask the human for credential VALUES until existing authentication
-mechanisms have been checked.
-
-Before requesting credentials:
-
-1. Run `./scripts/agent-doctor`.
-2. Check authenticated CLIs.
-3. Check whether the required environment variable exists.
-4. Check whether the service uses an OS-native credential store.
-5. Check documented project authentication procedures.
-
-Prefer authenticated CLIs and native credential stores over raw API keys.
-
-Never write secrets to:
-
-- `AGENTS.md`
-- `CLAUDE.md`
-- any `A2A-*.md`
-- README files
-- source code
-- Git commits
-- GitHub issues
-- logs
-- screenshots
-- test fixtures unless explicitly designed for safe fake credentials
-
-Never display secret values unless explicitly required by the human.
-
-Never run broad environment-dump commands merely to find credentials:
-
-    env
-    printenv
-    set
-    export -p
-
-Check only the required variable by name.
-
-Example:
-
-    if [[ -n "${OPENAI_API_KEY:-}" ]]; then
-        echo "OPENAI_API_KEY: available"
-    else
-        echo "OPENAI_API_KEY: missing"
-    fi
-
-Never echo the value.
-
----
-
-## AUTHENTICATION PREFERENCE
-
-Prefer persistent CLI authentication where supported.
-
-Examples:
-
-GitHub:
-    gh auth login
-
-Vercel:
-    vercel login
-
-Supabase:
-    supabase login
-
-Google Cloud:
-    gcloud auth login
-    gcloud auth application-default login
-
-API providers:
-    use project-scoped environment variables
-
-Never expose an authentication token simply because an AI agent can execute a
-CLI command that already has the required capability.
-
----
-
-## SECRET LOCATION
-
-Project-local secrets should be loaded from a directory outside Git:
-
-    ~/.config/a2a-projects/<project-slug>/
-
-Agents may verify that a required variable exists.
-
-Agents must not dump entire secret files.
-
----
-
-## GIT SAFETY
-
-Never commit secrets.
-
-Never use destructive Git operations without understanding current state.
-
-Avoid blind:
-
-    git add .
-
-when secret or unrelated files may exist.
-
-Inspect:
-
-    git status
-
-before commits.
-
-Do not discard unrelated work from humans or other agents.
-
----
-
-## HANDOFF
-
-Before stopping substantial work:
-
-1. Update `A2A-WIP.md`.
-2. Record unfinished work.
-3. Record blockers.
-4. Record tests/build status.
-5. Record exact next action.
-6. Update specialized A2A documents when their state changed.
-7. Ensure no important information exists only in chat context.
-
-The next AI agent should be able to continue without asking the human to
-reconstruct the previous session.
-## Shared startup contract
-- Before starting a new app or resuming an existing app, read `/home/fb/hermes-agent-backup/Hermes Agent BackUp GitHub Repo/A2A-AIIA-Labs-Multi-Agent-pp-Factory-Development-System-v369.md`.
-- Then follow this repo's local startup docs before acting.
-
-<!-- AIIA-FACTORY-PERIODIC-UPDATE -->
-## AIIA Factory Periodic Update (injected 2026-09-08)
-
-When resuming this repo as part of an AIIA Factory batch pass, in addition to stamping
-`A2A-*.md` / `README.md`, the next AI agent MUST also update the machine-readable state:
-
-1. `.aiia/factory.manifest.json` — refresh the `factory_verification` block
-   (`last_verified_date`, `task_group`, `status`, `summary`).
-2. `.aiia/logs/factory-verification-YYYY-MM-DD.jsonl` — append one JSON event line
-   `{"event":"factory_verification","date":"...","task_group":"...","repo":"...","status":"..."}`.
-3. Do NOT force-push. If `git push` is rejected non-fast-forward, run `git fetch origin`
-   then `git rebase origin/main` (or reset --hard to origin/main for doc-only stamps) and re-push.
-4. See the control plane: `/home/fb/Downloads/A2A-SHARED-PROGRESS.md`.
+# AGENTS.md — Hermes Agent for Android (Termux)
+
+Shared instructions for every coding agent on this repo: Codex, Hermes Agent and Antigravity read this file directly; Claude Code reads it via CLAUDE.md. Keep it under ~8,000 characters. Detail goes in `a2a/`.
+
+## Start here
+1. `git pull --rebase`
+2. Read `a2a/STATE.md`: current objective, what's in progress, next steps.
+3. Open other `a2a/` files only when STATE.md or the task needs them.
+
+## Project
+- **What it is:** Shell-script installer packaging Nous Research Hermes Agent for Android via Termux + proot-distro Ubuntu
+- **Stack:** Bash, Termux, proot-distro, uv (Python manager), Python 3.11-3.13
+- **URL / deployment:** GitHub Pages (repo), raw.githubusercontent.com (installer), user devices (runtime)
+- **Status:** Production (v2026.9.7)
+
+## Commands
+- Install: `curl -fsSL .../nous_agent.sh | bash` (recommended) or `install.sh` (direct Termux)
+- Run: `hermes` / `hermes gateway`
+- Test: `hermes-doctor` (full diagnostics)
+- Lint: `bash -n` on all `.sh` files, `shellcheck` (if available)
+
+## Conventions
+- POSIX-compatible Bash where possible
+- `exec proot-distro login ubuntu -- bash -c '...' -- "$@"` for launchers
+- Gateway: NO `exec` on proot-distro (EXIT trap must fire)
+- Python via `uv venv --python ">=3.11,<3.14"` (not apt)
+- Ubuntu detection: filesystem check `[ -d "$PREFIX/var/lib/proot-distro/installed-rootfs/ubuntu" ]`
+- All scripts must pass `bash -n`
 
 ## Handoff protocol (A2A)
-Read `a2a/STATE.md` first. After each completed task: update a2a/STATE.md and a2a/LOG.md, commit, push.
+- After each completed task or meaningful commit: overwrite `a2a/STATE.md`, append `a2a/LOG.md`, update TASKS / ISSUES / DECISIONS if touched, commit, push.
+- The pre-push hook blocks pushes when code changed after the last STATE.md update. Fix the handoff; do not bypass it.
+- Do not reverse a decision in `a2a/DECISIONS.md` without FB's agreement.
+- Business facts live in `a2a/WHAT.md`. Never guess them: write UNKNOWN and ask FB.
+- Feature branches, merge to main when tests pass. No force-push. No secrets in git.
+
+## a2a/ files
+| File | Purpose |
+|---|---|
+| STATE.md | Current state and next steps. Overwritten on every update. Read first. |
+| LOG.md | Append-only session log. |
+| TASKS.md | In progress, next, backlog, done. |
+| ISSUES.md | Bugs and fixes, with status and fix commit. |
+| DECISIONS.md | Why X and not Y. |
+| TECHNICAL.md | Architecture, specs, config sources, A→Z verification steps. |
+| WHAT.md | Product and business facts (Q&A). |
+| CHANGELOG.md | User-facing release notes. |
+
+## Style
+- FB is a senior SRE/DevOps engineer. Be direct and technical, British English, no filler.

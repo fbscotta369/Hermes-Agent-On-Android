@@ -30,11 +30,24 @@
 | T14 | Migrate legacy A2A-*.md to new a2a/ structure | COMPLETED | Documentation | Process | OpenCode | 2026-10-15 | ed5bf68 |
 | T15 | Implement PTI-002: a2a-check Validation Script | COMPLETED | Feature | Process Enforcement | OpenCode | 2026-10-15 | c08ccd0 |
 | T16 | Implement PTI-003: Pre-commit Secret Scanning | COMPLETED | Security | Defense-in-depth | OpenCode | 2026-10-15 | (this commit) |
+| T17 | Add --latest flag to nous_agent.sh/install.sh (auto-discover tag) | COMPLETED | Feature | User Value | OpenCode | 2026-10-15 | improvements |
+| T18 | Reduce AGENTS.md to under 8k chars (now 2569) | COMPLETED | Refactor | Process | OpenCode | 2026-10-15 | improvements |
+| T19 | Add checksum verification framework (SHA256 placeholders) | COMPLETED | Security | Supply Chain | OpenCode | 2026-10-15 | improvements |
+| T20 | Create modular libs (scripts/lib/colors,utils,telegram.sh) | COMPLETED | Refactor | Maintainability | OpenCode | 2026-10-15 | improvements |
+| T21 | a2a-check validates AGENTS.md size | COMPLETED | Feature | Process | OpenCode | 2026-10-15 | improvements |
+| T22 | shellcheck in pre-commit (warn only) | COMPLETED | Quality | Code Quality | OpenCode | 2026-10-15 | improvements |
+| T23 | a2a doctor --fix auto-fix common issues | COMPLETED | Feature | Developer Experience | OpenCode | 2026-10-15 | improvements |
+| T24 | bump-version script for automated version bumps | COMPLETED | Feature | Automation | OpenCode | 2026-10-15 | improvements |
+| T25 | CHANGELOG.md user-facing release notes | COMPLETED | Documentation | User Value | OpenCode | 2026-10-15 | improvements |
+| T26 | Enhanced uninstall.sh with verification | COMPLETED | Feature | Reliability | OpenCode | 2026-10-15 | improvements |
+| T27 | Cross-platform test matrix in TECHNICAL.md | COMPLETED | Documentation | Quality | OpenCode | 2026-10-15 | improvements |
+| T28 | Enhanced Telegram notifications (keyboard, rich formatting) | COMPLETED | Feature | User Value | OpenCode | 2026-10-15 | improvements |
+| T29 | Spinner/progress indicators in installer | COMPLETED | Feature | Developer Experience | OpenCode | 2026-10-15 | improvements |
 
 ## Task Summary
 
-- **Total completed:** 16 tasks
+- **Total completed:** 29 tasks
 - **Current status:** All tracked tasks in COMPLETED state
-- **Latest work:** PTI-003 Pre-commit Secret Scanning implemented (2026-10-15)
-- **Build status:** ✅ All 15 shell scripts pass `bash -n` syntax check
-- **Next action:** Monitor user feedback from v2026.9.7 release
+- **Latest work:** All suggested improvements implemented except PTI-001 (2026-10-15)
+- **Build status:** ✅ All 17 shell scripts pass `bash -n` syntax check
+- **Next action:** Merge improvements branch to main, monitor user feedback from v2026.9.7 release

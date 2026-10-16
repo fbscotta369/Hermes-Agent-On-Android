@@ -9,41 +9,74 @@
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/install.sh | bash
+#   curl -fsSL .../install.sh | bash -s -- --latest
 #
-
 set -euo pipefail
 
-GRN='\033[0;32m'
-CYN='\033[0;36m'
-YLW='\033[1;33m'
-RED='\033[0;31m'
-RST='\033[0m'
+# ──────────────────────────────────────────────
+# Load libraries
+# ──────────────────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/colors.sh
+. "$SCRIPT_DIR/scripts/lib/colors.sh"
+# shellcheck source=scripts/lib/utils.sh
+. "$SCRIPT_DIR/scripts/lib/utils.sh"
+# shellcheck source=scripts/lib/telegram.sh
+. "$SCRIPT_DIR/scripts/lib/telegram.sh"
 
-step() { echo -e "${GRN}━━━ ${CYN}$*${RST}"; }
-ok()   { echo -e "${GRN}  ✅ $*${RST}"; }
-warn() { echo -e "${YLW}  ⚠️  $*${RST}"; }
-fail() { echo -e "${RED}  ❌ $*${RST}"; exit 1; }
+# ──────────────────────────────────────────────
+# Parse arguments
+# ──────────────────────────────────────────────
+USE_LATEST=false
+for arg in "$@"; do
+    case "$arg" in
+        --latest)
+            USE_LATEST=true
+            ;;
+        --help|-h)
+            echo "Usage: curl -fsSL .../install.sh | bash [-- <flags>]"
+            echo ""
+            echo "Flags:"
+            echo "  --latest        Auto-discover and use latest stable release tag"
+            echo "  --help, -h      Show this help"
+            exit 0
+            ;;
+    esac
+done
 
-clear
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${GRN}    ☤  Hermes Agent — Direct Termux Install${RST}"
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${GRN}                AIIA-Labs"
-echo -e "${CYN}                https://aiia-labs.com"
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo ""
+# ──────────────────────────────────────────────
+# Auto-discover latest tag if --latest
+# ──────────────────────────────────────────────
+HERMES_TAG="v2026.9.7"
+if [ "$USE_LATEST" = true ]; then
+    step "Discovering latest Hermes Agent release..."
+    LATEST_TAG=$(get_latest_hermes_tag)
+    if [ -n "$LATEST_TAG" ]; then
+        HERMES_TAG="$LATEST_TAG"
+        ok "Latest stable release: $HERMES_TAG"
+    else
+        warn "Could not discover latest tag, using pinned: $HERMES_TAG"
+    fi
+fi
 
-# ── Pre-flight checks ──
+# ──────────────────────────────────────────────
+# Banner
+# ──────────────────────────────────────────────
+show_banner "HERMES AGENT — DIRECT TERMUX INSTALL" "AIIA-Labs | https://aiia-labs.com"
+
+# ──────────────────────────────────────────────
+# Pre-flight checks
+# ──────────────────────────────────────────────
 step "Pre-flight checks"
 
 # Connectivity
-if ! curl -s --max-time 10 https://github.com >/dev/null 2>&1; then
+if ! check_internet; then
     fail "No internet connectivity detected"
 fi
 ok "Internet connected"
 
 # Storage
-AVAIL_MB=$(df -m /data 2>/dev/null | awk 'NR==2 {print $4}' || echo 0)
+AVAIL_MB=$(get_storage_mb)
 if [ "$AVAIL_MB" -gt 0 ] && [ "$AVAIL_MB" -lt 3000 ]; then
     fail "At least 3 GB free required. Found ~$((AVAIL_MB / 1024)) GB."
 fi
@@ -53,28 +86,34 @@ ok "Storage: ~$((AVAIL_MB / 1024)) GB free"
 export DEBIAN_FRONTEND=noninteractive
 
 # Keep device awake
-termux-wake-lock 2>/dev/null || true
+keep_awake
 
-# ── Install dependencies ──
+# ──────────────────────────────────────────────
+# Install dependencies
+# ──────────────────────────────────────────────
 step "Installing dependencies"
 
-ok "Updating package lists..."
+start_spinner "Updating package lists..."
 pkg update -y -o Dpkg::Options::="--force-confnew" 2>/dev/null || pkg update -y || true
+stop_spinner ok "Package lists updated"
 
-ok "Installing uv (Python version manager)..."
+info "Installing uv (Python version manager)..."
 curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
 ok "uv ready: $(uv --version)"
 
-ok "Installing other dependencies..."
-pkg install -y git clang rust make pkg-config libffi openssl nodejs ripgrep ffmpeg
+start_spinner "Installing system dependencies..."
+pkg install -y git clang rust make pkg-config libffi openssl nodejs ripgrep ffmpeg 2>/dev/null
+stop_spinner ok "System dependencies installed"
 
-# ── Clone and install ──
+# ──────────────────────────────────────────────
+# Clone and install
+# ──────────────────────────────────────────────
 step "Installing Hermes Agent"
 
 ok "Cloning Hermes Agent..."
 rm -rf hermes-agent 2>/dev/null
-git clone --recurse-submodules --depth 1 https://github.com/NousResearch/hermes-agent.git
+git clone --recurse-submodules --depth 1 --branch "$HERMES_TAG" https://github.com/NousResearch/hermes-agent.git
 cd hermes-agent
 
 ok "Setting up Python virtual environment with compatible version..."
@@ -88,24 +127,43 @@ ok "Python version: $(python --version)"
 ok "Upgrading pip..."
 uv pip install --upgrade pip setuptools wheel
 
-ok "Installing Hermes Agent (this may take 5-10 minutes)..."
+start_spinner "Installing Hermes Agent (5-10 min)..."
 if ! uv pip install -e '.[termux]' -c constraints-termux.txt >/dev/null 2>&1; then
-    warn "Termux extras install failed, trying base install..."
+    stop_spinner warn "Termux extras install failed, trying base install..."
     uv pip install -e .
+else
+    stop_spinner ok "Hermes Agent installed"
 fi
 
 # Create global symlink
 ln -sf "$PWD/venv/bin/hermes" "$PREFIX/bin/hermes"
 ok "Created $PREFIX/bin/hermes"
 
-# ── Done ──
+# ──────────────────────────────────────────────
+# Summary
+# ──────────────────────────────────────────────
 echo ""
 echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${GRN}     ✅  Hermes Agent installed successfully!${RST}"
 echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo ""
-echo -e "${GRN}  Run:${RST}"
+
+VERSION_DISPLAY="stable ($HERMES_TAG)"
+if [ "$USE_LATEST" = "true" ]; then
+    VERSION_DISPLAY="latest ($HERMES_TAG)"
+fi
+echo -e "  ${GRN}Version:${RST}  $VERSION_DISPLAY"
+echo ""
+echo -e "  ${GRN}Run:${RST}"
 echo -e "  ${CYN}  hermes setup${RST}     First-time configuration"
 echo -e "  ${CYN}  hermes${RST}           Start the agent"
 echo -e "  ${CYN}  hermes gateway${RST}   Start the gateway"
 echo ""
+echo -e "  ${YLW}Note:${RST} This is the direct Termux install. For better compatibility,"
+echo -e "  use the proot-based installer: ${CYN}curl -fsSL .../nous_agent.sh | bash${RST}"
+echo ""
+echo -e "  ${GRN}💡 Need help?${RST} https://github.com/fbscotta369/Hermes-Agent-On-Android"
+echo ""
+
+# Release wake lock on exit
+trap release_awake EXIT

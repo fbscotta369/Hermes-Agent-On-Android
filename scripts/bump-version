@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+# bump-version — Automate Hermes Agent version bump
+# Usage: ./scripts/bump-version [--latest|--tag=vX.Y.Z|--edge]
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# shellcheck source=scripts/lib/colors.sh
+. "$SCRIPT_DIR/lib/colors.sh"
+# shellcheck source=scripts/lib/utils.sh
+. "$SCRIPT_DIR/lib/utils.sh"
+
+NEW_TAG=""
+USE_LATEST=false
+USE_EDGE=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --latest)  USE_LATEST=true ;;
+        --edge)    USE_EDGE=true ;;
+        --tag=*)   NEW_TAG="${arg#*=}" ;;
+        --help|-h)
+            echo "Usage: $0 [--latest|--edge|--tag=vX.Y.Z]"
+            echo "  --latest    Auto-discover latest stable tag"
+            echo "  --edge      Use main branch (no tag)"
+            echo "  --tag=vX.Y.Z  Specify exact tag"
+            exit 0
+            ;;
+        *) echo "Unknown argument: $arg"; exit 1 ;;
+    esac
+done
+
+# Determine new version
+if [ "$USE_EDGE" = true ]; then
+    NEW_TAG="main"
+    VERSION_DISPLAY="edge (main branch)"
+elif [ "$USE_LATEST" = true ]; then
+    step "Discovering latest Hermes Agent release..."
+    LATEST_TAG=$(get_latest_hermes_tag)
+    if [ -n "$LATEST_TAG" ]; then
+        NEW_TAG="$LATEST_TAG"
+        VERSION_DISPLAY="latest ($NEW_TAG)"
+    else
+        fail "Could not discover latest tag"
+    fi
+elif [ -z "$NEW_TAG" ]; then
+    fail "Specify --latest, --edge, or --tag=vX.Y.Z"
+fi
+
+# Get current tag from nous_agent.sh
+CURRENT_TAG=$(grep '^HERMES_TAG=' nous_agent.sh | cut -d'"' -f2)
+info "Current version: $CURRENT_TAG"
+info "New version: $VERSION_DISPLAY"
+
+# Confirm
+echo -n "Proceed with version bump? [y/N] "
+read -r confirm
+[[ "$confirm" =~ ^[Yy]$ ]] || { echo "Aborted"; exit 1; }
+
+# 1. Update nous_agent.sh
+step "Updating nous_agent.sh..."
+sed -i "s/^HERMES_TAG=.*/HERMES_TAG=\"$NEW_TAG\"/" nous_agent.sh
+ok "Updated HERMES_TAG in nous_agent.sh"
+
+# 2. Update install.sh (if it has HERMES_TAG)
+if grep -q '^HERMES_TAG=' install.sh 2>/dev/null; then
+    sed -i "s/^HERMES_TAG=.*/HERMES_TAG=\"$NEW_TAG\"/" install.sh
+    ok "Updated HERMES_TAG in install.sh"
+fi
+
+# 3. Update README.md version badge
+if grep -q 'version-v' README.md; then
+    sed -i "s/version-v[0-9.]\+/version-${NEW_TAG#v}/" README.md
+    ok "Updated version badge in README.md"
+fi
+
+# 4. Update CHANGELOG.md (create if not exists)
+if [ ! -f "a2a/CHANGELOG.md" ]; then
+    cat > a2a/CHANGELOG.md << 'EOF'
+# CHANGELOG
+
+User-facing release notes for Hermes Agent for Android.
+
+## [Unreleased]
+
+EOF
+fi
+
+# Add entry to CHANGELOG.md
+DATE=$(date '+%Y-%m-%d')
+sed -i "/^## \[Unreleased\]/a\\
+\\
+## [$NEW_TAG] - $DATE\\
+\\
+- Updated Hermes Agent to $NEW_TAG\\
+- Updated installer scripts and documentation\\
+" a2a/CHANGELOG.md
+ok "Updated a2a/CHANGELOG.md"
+
+# 5. Show diff
+echo ""
+info "Changes to be committed:"
+git diff --stat
+
+echo ""
+echo -n "Commit these changes? [y/N] "
+read -r confirm
+[[ "$confirm" =~ ^[Yy]$ ]] || { echo "Aborted"; exit 1; }
+
+# 6. Commit
+git add -A
+git commit -m "chore(version): bump Hermes Agent to $NEW_TAG
+
+- Update HERMES_TAG in nous_agent.sh and install.sh
+- Update README.md version badge
+- Update a2a/CHANGELOG.md
+
+Co-Authored-By: OpenCode <opencode@local>"
+
+ok "Version bump committed"
+
+# 7. Tag
+git tag -a "$NEW_TAG" -m "Hermes Agent $NEW_TAG" 2>/dev/null || true
+ok "Tagged as $NEW_TAG"
+
+echo ""
+echo "Next steps:"
+echo "  git push origin main --tags"
+echo "  Users will get $VERSION_DISPLAY on next install/update"

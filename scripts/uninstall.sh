@@ -28,10 +28,12 @@ echo ""
 
 # ── Step 1: Remove Termux-level launchers ──
 echo -e "${GRN}  → Removing Termux launchers...${RST}"
+REMOVED_LAUNCHERS=0
 for cmd in hermes hermes-setup hermes-update hermes-gateway hermes-doctor; do
     if [ -f "$PREFIX/bin/$cmd" ]; then
         rm -f "$PREFIX/bin/$cmd"
         echo "     Removed $PREFIX/bin/$cmd"
+        REMOVED_LAUNCHERS=$((REMOVED_LAUNCHERS + 1))
     fi
 done
 
@@ -60,8 +62,48 @@ if [ "$remove_ubuntu" = "y" ] || [ "$remove_ubuntu" = "Y" ]; then
     echo "     Ubuntu removed"
 fi
 
+# ── Step 4: Verification ──
 echo ""
-echo -e "${GRN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${GRN}     ✅  Hermes Agent has been removed.${RST}"
 echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+echo -e "${GRN}      ✅  Hermes Agent has been removed.${RST}"
+echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+echo ""
+
+echo -e "${GRN}Verification:${RST}"
+
+# Check launchers
+MISSING=0
+for cmd in hermes hermes-setup hermes-update hermes-gateway hermes-doctor; do
+    if [ -f "$PREFIX/bin/$cmd" ]; then
+        echo -e "  ${RED}❌ $PREFIX/bin/$cmd still exists${RST}"
+        MISSING=1
+    else
+        echo -e "  ${GRN}✅ $PREFIX/bin/$cmd removed${RST}"
+    fi
+done
+
+# Check Ubuntu
+if is_ubuntu_installed 2>/dev/null || proot-distro list 2>/dev/null | grep -qi "ubuntu.*installed"; then
+    echo -e "  ${YLW}⚠️  Ubuntu still installed (optional)${RST}"
+else
+    echo -e "  ${GRN}✅ Ubuntu removed${RST}"
+fi
+
+# Check hermes-agent directory
+if [ -d "$HOME/hermes-agent" ]; then
+    echo -e "  ${RED}❌ ~/hermes-agent still exists${RST}"
+    MISSING=1
+else
+    echo -e "  ${GRN}✅ ~/hermes-agent removed${RST}"
+fi
+
+echo ""
+if [ "$MISSING" -eq 0 ]; then
+    echo -e "${GRN}All components successfully removed!${RST}"
+else
+    echo -e "${RED}Some components may remain. Run hermes-doctor to verify.${RST}"
+fi
+
+echo ""
+echo -e "  ${GRN}💡 Need help?${RST} https://github.com/fbscotta369/Hermes-Agent-On-Android"
 echo ""

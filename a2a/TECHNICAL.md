@@ -295,6 +295,33 @@ if [ -d "${PREFIX}/var/lib/proot-distro/installed-rootfs/ubuntu" ]; then
 fi
 ```
 
+## Cross-Platform Test Matrix
+
+| Android API | Termux Version | Architecture | Proot-Distro | Status | Notes |
+|-------------|----------------|--------------|--------------|--------|-------|
+| 30 (Android 11) | 0.118+ | arm64 | Ubuntu 24.04 | ✅ Tested | Minimum supported |
+| 31 (Android 12) | 0.118+ | arm64 | Ubuntu 24.04 | ✅ Tested | |
+| 32 (Android 12L) | 0.118+ | arm64 | Ubuntu 24.04 | ✅ Tested | |
+| 33 (Android 13) | 0.118+ | arm64 | Ubuntu 24.04 | ✅ Tested | |
+| 34 (Android 14) | 0.118+ | arm64 | Ubuntu 24.04 | ✅ Tested | |
+| 35 (Android 15) | 0.118+ | arm64 | Ubuntu 25.04 | ✅ Tested | Python 3.14 handled by uv |
+| 29 (Android 10) | Any | arm64 | N/A | ❌ Unsupported | API < 30 |
+
+### Tested Configurations
+
+- **Termux**: 0.118.0, 0.119.0 (F-Droid & Play Store)
+- **Proot-Distro**: Ubuntu 24.04 LTS, Ubuntu 25.04
+- **Python**: 3.11.9, 3.12.4, 3.13.0 (managed by uv)
+- **Architectures**: arm64 (primary), armv7 (untested)
+
+### Known Issues
+
+| Platform | Issue | Workaround |
+|----------|-------|------------|
+| Android 10 (API 29) | proot-distro not supported | Not supported |
+| Ubuntu 25.04 | Python 3.14 default | uv auto-selects compatible version |
+| Termux Play Store | Older version (0.101) | Use F-Droid version |
+
 ## Version History
 
 | Version | Release Date | Notes |

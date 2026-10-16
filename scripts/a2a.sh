@@ -6,9 +6,11 @@
 #   a2a resume    you, arriving at a machine:  pull, enable hooks, print STATE.md
 #   a2a handoff   you, leaving a machine:      log, commit, push (asks before pushing a stale STATE)
 #   a2a check     is the handoff current?      (used by the Claude Stop hook and git pre-push)
+#   a2a check-all handoff + full a2a-check     (comprehensive validation)
 #   a2a start     print session context        (used by the Claude SessionStart hook)
 #   a2a soul      rebuild ~/.hermes/SOUL.md after editing GLOBAL.md
 #   a2a doctor    show what each agent will load and what's misconfigured
+#   a2a doctor --fix  auto-fix common issues (rebuild SOUL, reinstall hooks, init a2a)
 set -euo pipefail
 
 A2A_VERSION="1.0.0"
@@ -548,6 +550,11 @@ cmd_handoff() {
 }
 
 cmd_doctor() {
+  local fix_mode=false
+  if [[ "${1:-}" == "--fix" ]]; then
+    fix_mode=true
+  fi
+
   local f
   echo "Global rules:"
   for f in "$CLAUDE_HOME/CLAUDE.md" "$CODEX_HOME/AGENTS.md" "$GEMINI_HOME/GEMINI.md"; do
@@ -557,7 +564,12 @@ cmd_doctor() {
   done
   f="$HERMES_HOME/SOUL.md"
   if [ -f "$f" ] && grep -q "$MARKER" "$f"; then
-    if [ "$A2A_HOME/GLOBAL.md" -nt "$f" ]; then echo "  !!  $f older than GLOBAL.md (run a2a soul)"; else echo "  ok  $f"; fi
+    if [ "$A2A_HOME/GLOBAL.md" -nt "$f" ]; then 
+      echo "  !!  $f older than GLOBAL.md (run a2a soul)"
+      if [ "$fix_mode" = true ]; then
+        cmd_soul
+      fi
+    else echo "  ok  $f"; fi
   else echo "  --  $f has no A2A section (run a2a soul)"; fi
   command -v a2a >/dev/null && echo "  ok  a2a on PATH" || echo "  !!  a2a not on PATH"
 
@@ -573,11 +585,11 @@ cmd_doctor() {
   grep -qs '^@AGENTS.md' CLAUDE.md && echo "  ok  CLAUDE.md imports AGENTS.md" || echo "  !!  CLAUDE.md doesn't import AGENTS.md"
   for f in .hermes.md HERMES.md AGENTS.override.md; do [ -e "$f" ] && echo "  !!  $f shadows AGENTS.md in Hermes"; done
   [ -e GEMINI.md ] && echo "  !!  GEMINI.md overrides AGENTS.md in Antigravity"
-  [ "$(git config --get core.hooksPath || true)" = ".githooks" ] && echo "  ok  pre-push guard active" || echo "  !!  pre-push guard inactive in this clone (a2a resume or a2a init)"
-  grep -qs 'a2a.sh' .claude/settings.json && echo "  ok  Claude hooks" || echo "  !!  Claude hooks missing"
-  [ -f "$A2A_DIR/STATE.md" ] && echo "  ok  a2a/STATE.md" || echo "  !!  no a2a/STATE.md"
+  [ "$(git config --get core.hooksPath || true)" = ".githooks" ] && echo "  ok  pre-push guard active" || { echo "  !!  pre-push guard inactive in this clone (a2a resume or a2a init)"; if [ "$fix_mode" = true ]; then cmd_hooks; fi; }
+  grep -qs 'a2a.sh' .claude/settings.json && echo "  ok  Claude hooks" || { echo "  !!  Claude hooks missing"; if [ "$fix_mode" = true ]; then cmd_install; fi; }
+  [ -f "$A2A_DIR/STATE.md" ] && echo "  ok  a2a/STATE.md" || { echo "  !!  no a2a/STATE.md"; if [ "$fix_mode" = true ]; then cmd_init; fi; }
   [ -d "$A2A_DIR/legacy" ] && echo "  ~~  a2a/legacy/ still present (run the bootstrap prompt)"
-  local why; if why="$(stale_reason)"; then echo "  ~~  handoff stale: $why"; else echo "  ok  handoff current"; fi
+  local why; if why="$(stale_reason)"; then echo "  ~~  handoff stale: $why"; if [ "$fix_mode" = true ]; then echo "  → Run 'a2a handoff' to fix"; fi; else echo "  ok  handoff current"; fi
   return 0
 }
 
@@ -592,7 +604,8 @@ case "${1:-help}" in
   resume)  cmd_resume ;;
   handoff) cmd_handoff ;;
   soul)    cmd_soul ;;
-  doctor)  cmd_doctor ;;
+  doctor)  shift; cmd_doctor "$@" ;;
+  check-all) shift; "$SELF" check "$@" && "$(repo_root)/scripts/a2a-check" "$@" ;;
   version) echo "a2a $A2A_VERSION" ;;
   *)       usage ;;
 esac

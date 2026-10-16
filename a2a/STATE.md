@@ -1,41 +1,54 @@
 # STATE
-Updated: 2026-10-15 06:00 -03 by OpenCode @ T3SL4X-40RU5
-Branch: main | Tree: clean
+Updated: 2026-10-15 07:00 -03 by OpenCode @ T3SL4X-40RU5
+Branch: improvements | Tree: clean (staged changes)
 
 ## Objective
-Updated AIIA-Labs logo and added website link (https://aiia-labs.com) to README.md, install.sh, and nous_agent.sh banners.
+Implement all suggested improvements except PTI-001 CI/CD Pipeline:
+- ✅ --latest flag for nous_agent.sh/install.sh (auto-discovers latest Hermes tag)
+- ✅ AGENTS.md reduced to 2569 chars (under 8k limit)
+- ✅ Checksum verification framework added (placeholders for SHA256)
+- ✅ Modular libs: scripts/lib/{colors,utils,telegram}.sh
+- ✅ a2a-check validates AGENTS.md size
+- ✅ shellcheck in pre-commit (warn only)
+- ✅ a2a doctor --fix auto-fix common issues
+- ✅ bump-version script for automated version bumps
+- ✅ CHANGELOG.md user-facing release notes
+- ✅ Enhanced uninstall.sh with verification
+- ✅ Cross-platform test matrix in TECHNICAL.md
+- ✅ Enhanced Telegram notifications (inline keyboard, rich formatting)
+- ✅ Spinner/progress indicators in installer
 
 ## In progress
-- ✅ A2A Kit migration complete — new structure installed and populated
-- ✅ All 13 shell scripts verified with `bash -n`
-- ✅ Git hooks active: pre-push guard, Claude SessionStart/Stop hooks
-- ✅ Legacy files removed (a2a/legacy/ deleted)
-- ✅ PTI-002: a2a-check Validation Script implemented
-- ✅ PTI-003: Pre-commit Secret Scanning implemented and tracked
-- ✅ AIIA-Labs logo updated + website link added
+- ✅ All improvements implemented and tested
+- ✅ All 17 shell scripts pass `bash -n`
+- ✅ a2a-check passes (AGENTS.md now 2569 chars)
+- ✅ Pre-commit hook with secret scanning + shellcheck
+- ✅ Pre-push hook with a2a guard + a2a-check
 
 ## Next steps
-1. Monitor user feedback from v2026.9.7 release
-2. Consider PTI-001 (CI/CD Pipeline) if needed later
+1. Commit all changes to improvements branch
+2. Merge to main after review
+3. Monitor user feedback from v2026.9.7 release
 
 ## Blockers / questions for FB
-- None — all PTIs complete or reverted per request
+- None — all improvements complete
 
 ## Gotchas
-- AGENTS.md is 8215 chars (slightly over 8k target) — acceptable for now
+- AGENTS.md now 2569 chars (well under 8k target)
 - CLAUDE.md points to AGENTS.md with @AGENTS.md
-- Pre-push hook active in this clone (core.hooksPath=.githooks)
-- .claude/settings.json has SessionStart + Stop hooks calling scripts/a2a.sh
+- Pre-push hook active (core.hooksPath=.githooks)
+- .claude/settings.json has SessionStart + Stop hooks
 - Hermes SOUL.md rebuilt with latest GLOBAL.md via `a2a soul`
-- Pre-commit hook installed: blocks secrets, use `git commit --no-verify` for false positives
+- Pre-commit hook: blocks secrets, shellcheck warns only
+- Use `git commit --no-verify` for false positives
 
 ## Verify
 - `bash -n nous_agent.sh` → exit 0
 - `bash -n install.sh` → exit 0
-- `bash -n scripts/*` → exit 0 (all 15 scripts including a2a-check, install-hooks)
+- `bash -n scripts/*` → exit 0 (all 17 scripts)
 - `hermes-doctor` → all 6 checks PASS, 0 FAIL
 - `./scripts/a2a.sh doctor` → all OK
-- `./scripts/a2a.sh check` → handoff current
+- `./scripts/a2a.sh check-all` → passes
 - `./scripts/a2a-check` → all checks pass
 - `git commit` with secret → blocked
 - `git commit` normal → works

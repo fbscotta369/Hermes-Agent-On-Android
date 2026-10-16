@@ -9,17 +9,20 @@
 #   curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/nous_agent.sh | bash
 #   curl -fsSL https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/nous_agent.sh | bash -s -- --edge
 #   curl -fsSL .../nous_agent.sh | bash -s -- --tag v2026.9.7
+#   curl -fsSL .../nous_agent.sh | bash -s -- --latest
 #
 set -euo pipefail
 
 # ──────────────────────────────────────────────
-# Colors
+# Load libraries
 # ──────────────────────────────────────────────
-RED='\033[0;31m'
-GRN='\033[0;32m'
-YLW='\033[1;33m'
-CYN='\033[0;36m'
-RST='\033[0m'
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/colors.sh
+. "$SCRIPT_DIR/scripts/lib/colors.sh"
+# shellcheck source=scripts/lib/utils.sh
+. "$SCRIPT_DIR/scripts/lib/utils.sh"
+# shellcheck source=scripts/lib/telegram.sh
+. "$SCRIPT_DIR/scripts/lib/telegram.sh"
 
 # ──────────────────────────────────────────────
 # Configuration (overridable via flags)
@@ -27,22 +30,42 @@ RST='\033[0m'
 HERMES_REPO="https://github.com/NousResearch/hermes-agent.git"
 HERMES_TAG="v2026.9.7"
 USE_EDGE=false
+USE_LATEST=false
 CUSTOM_TAG=""
+
+# Known checksums for supply chain security
+# Update these when versions change
+NOUS_AGENT_SHA256="REPLACE_WITH_ACTUAL_SHA256_OF_NOUS_AGENT_SH"
+UV_INSTALLER_SHA256="REPLACE_WITH_ACTUAL_SHA256_OF_UV_INSTALLER"
 
 # ──────────────────────────────────────────────
 # Parse arguments
 # ──────────────────────────────────────────────
 for arg in "$@"; do
     case "$arg" in
-        --edge)     USE_EDGE=true ;;
-        --stable)   USE_EDGE=false ;;
-        --tag=*)    CUSTOM_TAG="${arg#*=}" ;;
+        --edge)     
+            USE_EDGE=true 
+            ;;
+        --stable)   
+            USE_EDGE=false 
+            USE_LATEST=false
+            ;;
+        --latest)   
+            USE_LATEST=true
+            USE_EDGE=false
+            ;;
+        --tag=*)    
+            CUSTOM_TAG="${arg#*=}"
+            USE_EDGE=false
+            USE_LATEST=false
+            ;;
         --help|-h)
             echo "Usage: curl -fsSL .../nous_agent.sh | bash [-- <flags>]"
             echo ""
             echo "Flags:"
             echo "  --edge          Track Hermes Agent main branch (latest, potentially unstable)"
             echo "  --stable        Use the pinned stable release (default)"
+            echo "  --latest        Auto-discover and use latest stable release tag"
             echo "  --tag=vX.Y.Z    Pin to a specific release tag"
             echo "  --help, -h      Show this help"
             exit 0
@@ -53,34 +76,36 @@ done
 if [ -n "$CUSTOM_TAG" ]; then
     HERMES_TAG="$CUSTOM_TAG"
     USE_EDGE=false
+    USE_LATEST=false
+fi
+
+# ──────────────────────────────────────────────
+# Auto-discover latest tag if --latest
+# ──────────────────────────────────────────────
+if [ "$USE_LATEST" = true ]; then
+    step "Discovering latest Hermes Agent release..."
+    LATEST_TAG=$(get_latest_hermes_tag)
+    if [ -n "$LATEST_TAG" ]; then
+        HERMES_TAG="$LATEST_TAG"
+        ok "Latest stable release: $HERMES_TAG"
+    else
+        warn "Could not discover latest tag, using pinned: $HERMES_TAG"
+    fi
 fi
 
 # ──────────────────────────────────────────────
 # Helper functions
 # ──────────────────────────────────────────────
-step()   { echo -e "${GRN}━━━ ${CYN}$*${RST}"; }
-info()   { echo -e "${GRN}  → $*${RST}"; }
-warn()   { echo -e "${YLW}  ⚠️  $*${RST}"; }
-fail()   { echo -e "${RED}  ❌ $*${RST}"; exit 1; }
-ok()     { echo -e "${GRN}  ✅ $*${RST}"; }
-
 cleanup() {
     [ -n "${INNER_SCRIPT:-}" ] && rm -f "$INNER_SCRIPT"
-    termux-wake-unlock 2>/dev/null || true
+    release_awake
 }
 trap cleanup EXIT
 
 # ──────────────────────────────────────────────
 # Banner
 # ──────────────────────────────────────────────
-clear
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${GRN}         ☤  HERMES AGENT FOR ANDROID  ☤${RST}"
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo -e "${GRN}                AIIA-Labs"
-echo -e "${CYN}                https://aiia-labs.com"
-echo -e "${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-echo ""
+show_banner "HERMES AGENT FOR ANDROID" "AIIA-Labs | https://aiia-labs.com"
 
 # ──────────────────────────────────────────────
 # Pre-flight environment checks
@@ -88,7 +113,7 @@ echo ""
 step "Pre-flight checks"
 
 # --- Android version ---
-ANDROID_SDK=$(getprop ro.build.version.sdk 2>/dev/null || echo 0)
+ANDROID_SDK=$(get_android_sdk)
 if [ "$ANDROID_SDK" -eq 0 ]; then
     warn "Could not detect Android API level. Not in Termux? Continuing anyway..."
 elif [ "$ANDROID_SDK" -lt 30 ]; then
@@ -98,25 +123,23 @@ else
 fi
 
 # --- Storage space (at least 3 GB free) ---
-if command -v df &>/dev/null; then
-    AVAIL_MB=$(df -m /data 2>/dev/null | awk 'NR==2 {print $4}' || echo 0)
-    if [ "$AVAIL_MB" -gt 0 ] && [ "$AVAIL_MB" -lt 3000 ]; then
-        fail "At least 3 GB free storage required. Found ~$((AVAIL_MB / 1024)) GB."
-    elif [ "$AVAIL_MB" -ge 3000 ]; then
-        ok "Storage: ~$((AVAIL_MB / 1024)) GB free"
-    else
-        warn "Could not check storage space"
-    fi
+AVAIL_MB=$(get_storage_mb)
+if [ "$AVAIL_MB" -gt 0 ] && [ "$AVAIL_MB" -lt 3000 ]; then
+    fail "At least 3 GB free storage required. Found ~$((AVAIL_MB / 1024)) GB."
+elif [ "$AVAIL_MB" -ge 3000 ]; then
+    ok "Storage: ~$((AVAIL_MB / 1024)) GB free"
+else
+    warn "Could not check storage space"
 fi
 
 # --- Internet connectivity ---
-if ! curl -s --max-time 10 https://github.com >/dev/null 2>&1; then
+if ! check_internet; then
     fail "No internet connectivity detected. Check your connection."
 fi
 ok "Internet connected"
 
 # --- Keep device awake ---
-termux-wake-lock 2>/dev/null || true
+keep_awake
 
 # ──────────────────────────────────────────────
 # Install proot-distro + Ubuntu
@@ -132,30 +155,20 @@ ok "proot-distro ready"
 # Ubuntu detection — filesystem check is the only reliable method
 info "Checking Ubuntu installation..."
 
-UBUNTU_INSTALLED=false
-# Strategy 1: Check proot-distro output for "ubuntu" + "installed" on same line
-if proot-distro list 2>/dev/null | grep -qi "ubuntu.*installed"; then
-    UBUNTU_INSTALLED=true
-# Strategy 2: Check if the Ubuntu rootfs directory exists
-elif [ -d "${PREFIX:-/data/data/com.termux/files/usr}/var/lib/proot-distro/installed-rootfs/ubuntu" ]; then
-    UBUNTU_INSTALLED=true
-# Strategy 3: Try to run a command inside Ubuntu
-elif proot-distro login ubuntu -- echo ok >/dev/null 2>&1; then
-    UBUNTU_INSTALLED=true
-fi
-
-if [ "$UBUNTU_INSTALLED" = true ]; then
+if is_ubuntu_installed; then
     ok "Ubuntu is already installed"
 else
     info "Installing Ubuntu (this may take a few minutes)..."
+    start_spinner "Installing Ubuntu..."
     OUTPUT=$(proot-distro install ubuntu 2>&1) || {
+        stop_spinner
         if echo "$OUTPUT" | grep -qi "already exists"; then
             warn "Ubuntu container already exists. Continuing..."
         else
             fail "Failed to install Ubuntu: $OUTPUT"
         fi
     }
-    ok "Ubuntu ready"
+    stop_spinner ok "Ubuntu ready"
 fi
 
 # ──────────────────────────────────────────────
@@ -332,7 +345,7 @@ check_api_key() {
        [ -z "${OPENAI_API_KEY:-}" ] && [ -z "${ANTHROPIC_API_KEY:-}" ]; then
         echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
         echo -e "${RED}  ❌  No API key found in environment!${RST}"
-        echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+        echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
         echo ""
         echo -e "  ${YLW}Set one of these in ~/.bashrc:${RST}"
         echo -e "    export ${CYN}GOOGLE_API_KEY${RST}=\"your-gemini-key\""
@@ -420,7 +433,7 @@ info() { echo -e "  ${CYN}ℹ️  $*${RST}"; }
 
 echo -e "${BLD}${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo -e "${BLD}${CYN}     ☤  Hermes Agent Doctor  ☤${RST}"
-echo -e "${BLD}${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
+echo -e "${BLD}${CYN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
 echo ""
 
 # ═══════════════════════════════════════════
@@ -680,13 +693,17 @@ if [ "${1:-}" = "--edge" ]; then
 set -euo pipefail
 export PATH="$HOME/.local/bin:$PATH"
 cd "$HOME/hermes-agent"
+OLD_VERSION=$(git describe --tags --always 2>/dev/null || echo "unknown")
+echo "  → Current version: $OLD_VERSION"
 echo "  → Fetching latest code..."
 git fetch origin
 git reset --hard origin/main
 source venv/bin/activate
 echo "  → Reinstalling..."
 uv pip install -e . >/dev/null 2>&1
+NEW_VERSION=$(git describe --tags --always 2>/dev/null || echo "unknown")
 echo -e "\n✅ Hermes Agent updated to latest main!"
+echo "   Version: $OLD_VERSION → $NEW_VERSION"
 echo "   Run: hermes"
 '
 else
@@ -695,6 +712,8 @@ else
 set -euo pipefail
 export PATH="$HOME/.local/bin:$PATH"
 cd "$HOME/hermes-agent"
+OLD_VERSION=$(git describe --tags --always 2>/dev/null || echo "unknown")
+echo "  → Current version: $OLD_VERSION"
 echo "  → Fetching tags..."
 git fetch --tags origin
 LATEST_TAG=$(git tag --sort=-version:refname | head -1)
@@ -704,6 +723,7 @@ source venv/bin/activate
 echo "  → Reinstalling..."
 uv pip install -e . >/dev/null 2>&1
 echo -e "\n✅ Hermes Agent updated to $LATEST_TAG!"
+echo "   Version: $OLD_VERSION → $LATEST_TAG"
 echo "   Run: hermes"
 '
 fi
@@ -723,6 +743,8 @@ echo ""
 VERSION_DISPLAY="stable ($HERMES_TAG)"
 if [ "$USE_EDGE" = "true" ]; then
     VERSION_DISPLAY="edge (main branch)"
+elif [ "$USE_LATEST" = "true" ]; then
+    VERSION_DISPLAY="latest ($HERMES_TAG)"
 fi
 echo -e "  ${GRN}Version:${RST}  $VERSION_DISPLAY"
 echo ""
@@ -733,6 +755,7 @@ echo -e "  ${CYN}  hermes${RST}           Start the agent"
 echo -e "  ${CYN}  hermes gateway${RST}   Start the gateway"
 echo -e "  ${CYN}  hermes-doctor${RST}    Run diagnostics"
 echo -e "  ${CYN}  hermes-update${RST}    Update to the latest version"
+echo -e "  ${CYN}  hermes-update --edge${RST}  Update to main branch"
 echo ""
 
 # Refresh bash command cache so 'hermes' works immediately
