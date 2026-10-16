@@ -22,7 +22,7 @@ if [[ -n "${BASH_SOURCE[0]:-}" ]] && [[ -f "$(dirname "${BASH_SOURCE[0]}")/scrip
 elif [[ -f "scripts/lib/colors.sh" ]]; then
     LIB_DIR="$(cd scripts/lib && pwd)"
 else
-    _HERMES_LIB_TMP="$(mktemp -d /tmp/hermes-libs.XXXXXX)"
+    _HERMES_LIB_TMP="$(mktemp -d "${HOME:-/tmp}/.hermes-libs.XXXXXX")"
     LIB_DIR="$_HERMES_LIB_TMP"
     for _lib in colors utils telegram; do
         curl -fsSL "https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/scripts/lib/$_lib.sh" -o "$LIB_DIR/$_lib.sh"

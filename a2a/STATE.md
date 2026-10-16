@@ -21,6 +21,7 @@ Implement all suggested improvements except PTI-001 CI/CD Pipeline:
 ## In progress
 - ✅ All improvements implemented and tested
 - ✅ Fixed piped-install unbound BASH_SOURCE / missing libs (install.sh and nous_agent.sh lines 19/21)
+- ✅ Use $HOME-based temp dir for downloaded libs (Android /tmp may be unwritable)
 - ✅ Guarded BASH_SOURCE[0] in helper scripts for set -u safety
 - ✅ All shell scripts pass `bash -n`
 - ✅ a2a-check passes (AGENTS.md now 2569 chars)
