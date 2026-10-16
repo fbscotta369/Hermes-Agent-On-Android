@@ -164,6 +164,25 @@ check_git_tracking() {
   done
 }
 
+check_agents_md_size() {
+  say "Checking AGENTS.md size..."
+  
+  if [[ -f "AGENTS.md" ]]; then
+    local size
+    size=$(wc -c < AGENTS.md | tr -d ' ')
+    if [[ $size -gt 12000 ]]; then
+      err "  AGENTS.md is $size chars (Antigravity truncates at ~12k)"
+      ((VIOLATIONS++))
+    elif [[ $size -gt 8000 ]]; then
+      warn "  AGENTS.md is $size chars (aim for under 8k)"
+    else
+      ok "  AGENTS.md is $size chars (OK)"
+    fi
+  else
+    warn "  AGENTS.md not found"
+  fi
+}
+
 check_handoff_freshness() {
   say "Checking handoff freshness..."
   
@@ -202,6 +221,8 @@ main() {
   check_secrets
   echo
   check_git_tracking
+  echo
+  check_agents_md_size
   echo
   check_handoff_freshness
   echo

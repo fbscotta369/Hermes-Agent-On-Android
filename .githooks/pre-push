@@ -1,3 +1,23 @@
 #!/usr/bin/env bash
 # a2a pre-push guard: blocks pushes when code changed after the last a2a/STATE.md update
-exec "$(git rev-parse --show-toplevel)/scripts/a2a.sh" check prepush
+# Also runs a2a-check for additional validation
+
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+A2A_CHECK="$REPO_ROOT/scripts/a2a-check"
+A2A_SH="$REPO_ROOT/scripts/a2a.sh"
+
+# Run A2A handoff freshness check
+exec "$A2A_SH" check prepush
+
+# Run a2a-check (non-blocking, warn only)
+if [ -x "$A2A_CHECK" ]; then
+    echo ""
+    echo "Running a2a-check..."
+    if ! "$A2A_CHECK"; then
+        echo ""
+        echo "⚠️  a2a-check found issues (non-blocking). Consider fixing before next commit."
+        echo "   Run './scripts/a2a-check --fix' for auto-fix suggestions."
+    fi
+fi
