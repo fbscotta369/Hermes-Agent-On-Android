@@ -23,7 +23,7 @@ HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
 GIT_NAME_DEFAULT="${A2A_GIT_NAME:-fbscotta369}"
 GIT_EMAIL_DEFAULT="${A2A_GIT_EMAIL:-fbscotta@gmail.com}"
 MARKER="A2A-GLOBAL-BEGIN"
-SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SELF="$(readlink -f "${BASH_SOURCE[0]:-$0}")"
 
 say()  { printf '\033[1;36m[a2a]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[a2a]\033[0m %s\n' "$*" >&2; }

@@ -14,15 +14,26 @@
 set -euo pipefail
 
 # ──────────────────────────────────────────────
-# Load libraries
+# Load libraries (works from a clone OR piped via curl)
 # ──────────────────────────────────────────────
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_HERMES_LIB_TMP=""
+if [[ -n "${BASH_SOURCE[0]:-}" ]] && [[ -f "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/colors.sh" ]]; then
+    LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/scripts/lib"
+elif [[ -f "scripts/lib/colors.sh" ]]; then
+    LIB_DIR="$(cd scripts/lib && pwd)"
+else
+    _HERMES_LIB_TMP="$(mktemp -d /tmp/hermes-libs.XXXXXX)"
+    LIB_DIR="$_HERMES_LIB_TMP"
+    for _lib in colors utils telegram; do
+        curl -fsSL "https://raw.githubusercontent.com/fbscotta369/Hermes-Agent-On-Android/main/scripts/lib/$_lib.sh" -o "$LIB_DIR/$_lib.sh"
+    done
+fi
 # shellcheck source=scripts/lib/colors.sh
-. "$SCRIPT_DIR/scripts/lib/colors.sh"
+. "$LIB_DIR/colors.sh"
 # shellcheck source=scripts/lib/utils.sh
-. "$SCRIPT_DIR/scripts/lib/utils.sh"
+. "$LIB_DIR/utils.sh"
 # shellcheck source=scripts/lib/telegram.sh
-. "$SCRIPT_DIR/scripts/lib/telegram.sh"
+. "$LIB_DIR/telegram.sh"
 
 # ──────────────────────────────────────────────
 # Configuration (overridable via flags)
@@ -98,6 +109,7 @@ fi
 # ──────────────────────────────────────────────
 cleanup() {
     [ -n "${INNER_SCRIPT:-}" ] && rm -f "$INNER_SCRIPT"
+    [ -n "${_HERMES_LIB_TMP:-}" ] && rm -rf "$_HERMES_LIB_TMP"
     release_awake
 }
 trap cleanup EXIT

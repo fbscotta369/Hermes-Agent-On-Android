@@ -1,6 +1,6 @@
 # STATE
-Updated: 2026-10-15 07:00 -03 by OpenCode @ T3SL4X-40RU5
-Branch: improvements | Tree: clean (staged changes)
+Updated: 2026-10-16 00:00 -03 by OpenCode @ T3SL4X-40RU5
+Branch: main | Tree: clean (after fix)
 
 ## Objective
 Implement all suggested improvements except PTI-001 CI/CD Pipeline:
@@ -20,7 +20,9 @@ Implement all suggested improvements except PTI-001 CI/CD Pipeline:
 
 ## In progress
 - ✅ All improvements implemented and tested
-- ✅ All 17 shell scripts pass `bash -n`
+- ✅ Fixed piped-install unbound BASH_SOURCE / missing libs (install.sh and nous_agent.sh lines 19/21)
+- ✅ Guarded BASH_SOURCE[0] in helper scripts for set -u safety
+- ✅ All shell scripts pass `bash -n`
 - ✅ a2a-check passes (AGENTS.md now 2569 chars)
 - ✅ Pre-commit hook with secret scanning + shellcheck
 - ✅ Pre-push hook with a2a guard + a2a-check
