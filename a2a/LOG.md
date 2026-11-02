@@ -12,3 +12,9 @@ Append-only, newest at the bottom. One line per session or handoff:
 - 2026-10-15 06:00 -03 | OpenCode | T3SL4X-40RU5 | main | updated AIIA-Labs logo, added https://aiia-labs.com link to README/installer banners | beaf0e9
 - 2026-10-15 07:00 -03 | OpenCode | T3SL4X-40RU5 | improvements | implemented all suggested improvements except PTI-001: --latest flag, modular libs, AGENTS.md <8k, checksum framework, a2a-check AGENTS.md size check, shellcheck in pre-commit, a2a doctor --fix, bump-version script, CHANGELOG.md, enhanced uninstall, cross-platform matrix, enhanced Telegram, spinner UI | (this commit)- 2026-10-16 00:00 -03 | OpenCode | T3SL4X-40RU5 | main | fixed piped install errors (bash lines 19/21): robust lib loading + guarded BASH_SOURCE[0] | this commit
 - 2026-10-16 00:10 -03 | OpenCode | T3SL4X-40RU5 | main | temp lib dir moved to $HOME (fix mktemp permission denied on Android) | this commit
+
+**Haiku 4.5** — A2A Hub initialization across all repos (2026-11-02 17:10 GMT-3)
+- A2A Hub structure deployed: a2a/hub/ created with agents.jsonl, tasks.jsonl, branches.json, state-snapshots/
+- AGENTS.md updated with hub startup protocol (register → check → lock → work → push → release)
+- CLAUDE.md extended with hub governance rules (47.5, 48.5, 49.5)
+- Feature branch created: a2a/hub-init-2026-11-02_165947

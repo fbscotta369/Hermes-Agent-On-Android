@@ -56,3 +56,11 @@ Implement all suggested improvements except PTI-001 CI/CD Pipeline:
 - `git commit` with secret → blocked
 - `git commit` normal → works
 - `git push` → works (pre-push guard passes)
+## 2026-11-02 — A2A Hub initialization
+
+**Hub deployed:** a2a/hub/ structure initialized for distributed multi-agent coordination
+- agents.jsonl — agent registry template
+- tasks.jsonl — task queue template
+- branches.json — branch lock registry
+- state-snapshots/ — timestamped STATE.md archive
+

@@ -1,0 +1,4 @@
+# A2A Hub Agent Registry
+# Each line is a JSON object: {agent_id, model, device, branch, task, status, last_heartbeat}
+# Format: {"agent_id": "...", "model": "...", "device": "...", "branch": "...", "task": "...", "status": "idle|working|waiting_prereq", "last_heartbeat": "ISO8601"}
+

@@ -1,0 +1,4 @@
+# A2A Hub Task Queue
+# Each line is a JSON object: {task_id, type, prereq, assignee, branch, status, created}
+# Format: {"task_id": "...", "type": "hunt|checkout|lint|...", "prereq": null|"TASK_ID"|["TASK_ID",...], "assignee": null|"agent_id", "branch": "feature/task-...", "status": "queued|in_progress|blocked|complete", "created": "ISO8601"}
+

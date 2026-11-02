@@ -48,3 +48,23 @@ Shared instructions for every coding agent on this repo: Codex, Hermes Agent and
 
 ## Style
 - FB is a senior SRE/DevOps engineer. Be direct and technical, British English, no filler.
+## A2A Hub Protocol (Updated 2026-11-02)
+
+### Hub Startup Sequence
+
+Before starting work, every agent must:
+
+1. **Register** in `a2a/hub/agents.jsonl` with (agent_id, model, device, branch, task, status, last_heartbeat)
+2. **Check assignment** in `a2a/hub/tasks.jsonl` (prereqs met? assignee == self?)
+3. **Lock branch** in `a2a/hub/branches.json` (prevent concurrent edits)
+4. **Pull state** from `a2a/hub/state-snapshots/` relevant to your branch
+5. **Work isolated** on `feature/task-<ID>` branch (never main)
+6. **Push & release** when done: update task status, create state-snapshot, release branch lock
+
+### Hub Files
+
+- `agents.jsonl` — Live agent registry (heartbeat-tracked)
+- `tasks.jsonl` — Task queue with prerequisites and assignees
+- `branches.json` — Branch→agent locks (prevents conflicts)
+- `state-snapshots/` — Timestamped STATE.md from each completed branch
+
