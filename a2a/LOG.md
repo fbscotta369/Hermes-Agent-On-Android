@@ -18,3 +18,5 @@ Append-only, newest at the bottom. One line per session or handoff:
 - AGENTS.md updated with hub startup protocol (register → check → lock → work → push → release)
 - CLAUDE.md extended with hub governance rules (47.5, 48.5, 49.5)
 - Feature branch created: a2a/hub-init-2026-11-02_165947
+
+- 2026-11-21 | batch | Periodic a2a/MAAF batch update: factory verification refreshed, merged to main.
